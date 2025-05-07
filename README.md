@@ -1,7 +1,7 @@
 # JML-Pescados - Sistema de Gestão Financeira
 
 <center>
-<img src="[public/celso.png](https://github.com/henriqueferreira-ofc/jmlpescados/blob/main/public/celso.png)" alt="JML-Pescados" width="200">
+<img src="public/celso.png" alt="JML-Pescados" width="200">
 </center>
 
 ## 📋 Descrição
