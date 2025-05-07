@@ -147,97 +147,106 @@ function exportToExcel() {
     const workbook = XLSX.utils.book_new();
     const mesAtual = document.getElementById("currentMonth").textContent;
 
-    // Coletar dados dos alunos e despesas
+    // Coletar dados dos grudes e despesas
     const nomes = document.getElementsByName("alunoNome[]");
+    const quantidades = document.getElementsByName("alunoQtd[]");
     const valores = document.getElementsByName("alunoValor[]");
     const descricoes = document.getElementsByName("despesaDescricao[]");
     const valoresDespesa = document.getElementsByName("despesaValor[]");
 
-    // Montar linhas conforme o modelo da imagem
-    const maxLinhas = Math.max(nomes.length, descricoes.length);
+    // Montar linhas conforme o modelo
     const data = [];
 
     // Cabeçalho vazio para o título
     data.push([null, null, null, null]);
     // Título mesclado
     data.push([
-      `FACULDADE IBADEB - BALANCETE - MÊS DE ${mesAtual}`,
+      `JML-PESCADOS - BALANCETE - MÊS DE ${mesAtual}`,
       null,
       null,
       null
     ]);
     // Cabeçalho das colunas em caixa alta
-    data.push(["NOME DO ALUNO", "ENTRADA", "DESPESAS", "SALDO"]);
+    data.push(["GRUDES", "QUANTIDADE (KG)", "VALOR POR KG", "TOTAL"]);
 
     let totalEntradas = 0;
+    let totalQuantidade = 0;
     let totalDespesas = 0;
-    let saldoAcumulado = 0;
 
-    for (let i = 0; i < maxLinhas; i++) {
-      const nome = nomes[i] && nomes[i].value ? nomes[i].value : "";
-      const entrada =
-        valores[i] && valores[i].value ? parseFloat(valores[i].value) : "";
-      const despesa =
-        valoresDespesa[i] && valoresDespesa[i].value
-          ? parseFloat(valoresDespesa[i].value)
-          : "";
-      let saldo = "";
-      if (entrada !== "" && despesa !== "") {
-        saldo = entrada - despesa;
-      } else if (entrada !== "") {
-        saldo = entrada;
-      } else if (despesa !== "") {
-        saldo = -despesa;
+    // Adicionar dados dos grudes
+    for (let i = 0; i < nomes.length; i++) {
+      if (nomes[i].value) {
+        const quantidade = parseFloat(quantidades[i].value || 0);
+        const valorPorKg = parseFloat(valores[i].value || 0);
+        const total = quantidade * valorPorKg;
+
+        data.push([nomes[i].value, quantidade, valorPorKg, total]);
+
+        totalEntradas += total;
+        totalQuantidade += quantidade;
       }
-      if (entrada !== "") totalEntradas += entrada;
-      if (despesa !== "") totalDespesas += despesa;
-      if (saldo !== "") saldoAcumulado += saldo;
-      data.push([
-        nome,
-        entrada !== "" ? entrada : "",
-        despesa !== "" ? despesa : "",
-        saldo !== "" ? saldo : ""
-      ]);
     }
 
-    // Linha de totais
-    data.push(["SALDO", totalEntradas, totalDespesas, saldoAcumulado]);
+    // Linha em branco
+    data.push([null, null, null, null]);
+
+    // Cabeçalho das despesas
+    data.push(["DESPESAS", null, null, null]);
+    data.push(["Descrição", "Valor", null, null]);
+
+    // Adicionar dados das despesas
+    for (let i = 0; i < descricoes.length; i++) {
+      if (descricoes[i].value) {
+        const valor = parseFloat(valoresDespesa[i].value || 0);
+        data.push([descricoes[i].value, valor, null, null]);
+        totalDespesas += valor;
+      }
+    }
+
+    // Linha em branco
+    data.push([null, null, null, null]);
+
+    // Totais
+    data.push(["RESUMO", null, null, null]);
+    data.push(["Entradas", totalEntradas, null, null]);
+    data.push(["Quantidade Total (KG)", totalQuantidade, null, null]);
+    data.push(["Despesas", totalDespesas, null, null]);
+    data.push(["Saldo", totalEntradas - totalDespesas, null, null]);
 
     // Criar a planilha
     const ws = XLSX.utils.aoa_to_sheet(data);
 
     // Mesclar células para o título
     ws["!merges"] = [
-      { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } } // Mescla B2:E2
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } }, // Título
+      {
+        s: { r: data.findIndex((row) => row[0] === "RESUMO"), c: 0 },
+        e: { r: data.findIndex((row) => row[0] === "RESUMO"), c: 3 }
+      } // RESUMO
     ];
 
-    // Estilos (SheetJS open source suporta apenas estilos simples)
-    // Título: negrito, centralizado, cor de fundo
-    ws["A2"].s = {
-      font: { bold: true, sz: 14 },
-      alignment: { horizontal: "center", vertical: "center" },
-      fill: { fgColor: { rgb: "B7DEE8" } }
-    };
-    // Cabeçalho: negrito, cor de fundo
-    ["A3", "B3", "C3", "D3"].forEach((cell) => {
-      ws[cell].s = {
-        font: { bold: true },
-        fill: { fgColor: { rgb: "D9E1F2" } },
-        alignment: { horizontal: "center" }
-      };
-    });
-    // Linha de totais (saldo): negrito, cor de fundo
-    const saldoRow = 3 + maxLinhas + 1;
-    ["A", "B", "C", "D"].forEach((col, idx) => {
-      const cell = `${col}${saldoRow}`;
-      if (ws[cell]) {
-        ws[cell].s = {
-          font: { bold: true },
-          fill: { fgColor: { rgb: "FCE4D6" } },
-          alignment: { horizontal: idx === 0 ? "left" : "center" }
-        };
+    // Configurar largura das colunas
+    ws["!cols"] = [
+      { wch: 30 }, // Coluna A - GRUDES/Descrição
+      { wch: 15 }, // Coluna B - Valores
+      { wch: 15 }, // Coluna C - Valores
+      { wch: 15 } // Coluna D - Valores
+    ];
+
+    // Formatar células numéricas
+    const range = XLSX.utils.decode_range(ws["!ref"]);
+    for (let R = range.s.r; R <= range.e.r; R++) {
+      for (let C = range.s.c; C <= range.e.c; C++) {
+        const cell_address = { c: C, r: R };
+        const cell_ref = XLSX.utils.encode_cell(cell_address);
+        if (!ws[cell_ref]) continue;
+
+        // Formatar células de valores (colunas B, C e D)
+        if (C > 0 && typeof ws[cell_ref].v === "number") {
+          ws[cell_ref].z = "#,##0.00";
+        }
       }
-    });
+    }
 
     XLSX.utils.book_append_sheet(workbook, ws, "Balancete");
     XLSX.writeFile(workbook, `balancete_${mesAtual.toLowerCase()}.xlsx`);
@@ -261,7 +270,7 @@ function gerarPDF() {
     // Título em negrito
     doc.setFont("helvetica", "bold");
     doc.text(
-      `FACULDADE IBADEB - BALANCETE - MÊS DE ${mesAtual.toUpperCase()}`,
+      `JML-PESCADOS - BALANCETE - MÊS DE ${mesAtual.toUpperCase()}`,
       105,
       20,
       {
@@ -272,21 +281,34 @@ function gerarPDF() {
 
     let y = 40;
 
-    // Lista de Alunos
+    // Lista de Grudes
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
-    doc.text("ALUNOS E VALORES PAGOS:", 20, y);
+    doc.text("GRUDES E VALORES:", 20, y);
     doc.setFont("helvetica", "normal");
     y += 10;
 
     const nomes = document.getElementsByName("alunoNome[]");
+    const quantidades = document.getElementsByName("alunoQtd[]");
     const valores = document.getElementsByName("alunoValor[]");
 
     doc.setFontSize(12);
     for (let i = 0; i < nomes.length; i++) {
       if (nomes[i].value) {
-        doc.text(`${nomes[i].value}: R$ ${valores[i].value || "0.00"}`, 30, y);
+        const quantidade = quantidades[i].value || "0.00";
+        const valor = valores[i].value || "0.00";
+        const valorTotal = (parseFloat(quantidade) * parseFloat(valor)).toFixed(
+          2
+        );
+
+        doc.text(`${nomes[i].value}:`, 30, y);
         y += 8;
+        doc.text(`Quantidade: ${quantidade} kg`, 40, y);
+        y += 8;
+        doc.text(`Valor por kg: R$ ${valor}`, 40, y);
+        y += 8;
+        doc.text(`Total: R$ ${valorTotal}`, 40, y);
+        y += 12;
       }
     }
 
@@ -320,23 +342,21 @@ function gerarPDF() {
     doc.text("RESUMO:", 20, y);
     doc.setFont("helvetica", "normal");
     y += 10;
-    doc.text(
-      `Entradas: R$ ${document.getElementById("totalEntradas").textContent}`,
-      30,
-      y
-    );
+
+    // Formatar valores com separador de milhar
+    const totalEntradas = document.getElementById("totalEntradas").textContent;
+    const totalQuantidade =
+      document.getElementById("totalQuantidade").textContent;
+    const totalDespesas = document.getElementById("totalDespesas").textContent;
+    const totalReceita = document.getElementById("totalReceita").textContent;
+
+    doc.text(`Entradas: R$ ${totalEntradas}`, 30, y);
     y += 8;
-    doc.text(
-      `Despesas: R$ ${document.getElementById("totalDespesas").textContent}`,
-      30,
-      y
-    );
+    doc.text(`Quantidade Total: ${totalQuantidade} kg`, 30, y);
     y += 8;
-    doc.text(
-      `Saldo: R$ ${document.getElementById("totalReceita").textContent}`,
-      30,
-      y
-    );
+    doc.text(`Despesas: R$ ${totalDespesas}`, 30, y);
+    y += 8;
+    doc.text(`Saldo: R$ ${totalReceita}`, 30, y);
 
     // Salvar PDF
     doc.save(`balancete_${mesAtual.toLowerCase()}.pdf`);
