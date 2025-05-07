@@ -81,8 +81,12 @@ jml-pescados/
 ## 📄 Licença
 Este projeto está sob a licença proprietária da JML-Pescados. Todos os direitos reservados.
 
-## 👥 Suporte
-Para suporte ou dúvidas, entre em contato com a equipe de desenvolvimento.
+👥 Suporte
+Para suporte ou dúvidas, entre em contato com a equipe de desenvolvimento:
+
+🌐 [Meu GitHub](https://github.com/henriqueferreira-ofc)
+
+📱 [WhatsApp](https://wa.me/5561982599983)
 
 ---
 Desenvolvido com ❤️ para JML-Pescados 
