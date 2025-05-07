@@ -73,8 +73,8 @@ jml-pescados/
 📄 Licença
 Este projeto está sob a licença proprietária da JML-Pescados.
 Todos os direitos reservados.
-🔗 [Ver licença](https://github.com/henriqueferreira-ofc/jmlpescados/blob/main/LICENSE
-)
+
+🔗 [Ver licença](https://github.com/henriqueferreira-ofc/jmlpescados/blob/main/LICENSE)
 
 
 
