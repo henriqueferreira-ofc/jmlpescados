@@ -38,15 +38,7 @@ Sistema de gestão financeira desenvolvido para a JML-Pescados, permitindo o con
 - SheetJS (para exportação Excel)
 
 ## 💻 Como Usar
-
-1. Clone o repositório
-```bash
-git clone [URL_DO_REPOSITÓRIO]
-```
-
-2. Abra o arquivo `index.html` em seu navegador
-
-3. Comece a utilizar:
+1. Comece a utilizar:
    - Adicione grudes com suas respectivas quantidades e valores
    - Registre despesas gerais
    - Visualize os totais atualizados automaticamente
