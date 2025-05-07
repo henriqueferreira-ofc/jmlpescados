@@ -71,12 +71,9 @@ jml-pescados/
 - Salvamento automático das alterações
 
 📄 Licença
-Este projeto está sob a licença proprietária da JML-Pescados.
-Todos os direitos reservados.
 
-🔗 [Ver licença](https://github.com/henriqueferreira-ofc/jmlpescados/blob/main/LICENSE)
-
-
+Este projeto está licenciado sob os termos da MIT License.
+🔗 [Clique aqui para visualizar a licença completa](https://github.com/henriqueferreira-ofc/jmlpescados/blob/main/LICENSE)
 
 👥 Suporte
 Para suporte ou dúvidas, entre em contato com a equipe de desenvolvimento:
@@ -84,6 +81,9 @@ Para suporte ou dúvidas, entre em contato com a equipe de desenvolvimento:
 🌐 [Meu GitHub](https://github.com/henriqueferreira-ofc)
 
 📱 [WhatsApp](https://wa.me/5561982599983)
+
+💼 [LinkedIn](https://www.linkedin.com/in/henriqueferreira-ofc/)
+
 
 ---
 Desenvolvido com ❤️ para JML-Pescados 
