@@ -1,6 +1,6 @@
 # JML-Pescados - Sistema de Gestão Financeira
 
-![JML-Pescados](public/celso.png)
+<img src="public/celso.png" alt="JML-Pescados" width="200">
 
 ## 📋 Descrição
 Sistema de gestão financeira desenvolvido para a JML-Pescados, permitindo o controle de entrada e saída de recursos, com foco especial no gerenciamento de grudes e despesas gerais.
