@@ -70,8 +70,13 @@ jml-pescados/
 - Atualização automática dos totais
 - Salvamento automático das alterações
 
-## 📄 Licença
-Este projeto está sob a licença proprietária da JML-Pescados. Todos os direitos reservados.
+📄 Licença
+Este projeto está sob a licença proprietária da JML-Pescados.
+Todos os direitos reservados.
+🔗 [Ver licença](https://github.com/henriqueferreira-ofc/jmlpescados/blob/main/LICENSE
+)
+
+
 
 👥 Suporte
 Para suporte ou dúvidas, entre em contato com a equipe de desenvolvimento:
