@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JML-Pescados</title>
+  <link rel="icon" type="image/png" href="public/LogoCelso.png">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body onload="updateMonth()">
+
+  <div class="header">
+    <img src="public/logojml.png" alt="Logo IBADEB" class="logo">
+    <h1>JML-Pescados - Balancete - Mês de <span id="currentMonth"></span></h1>
+  </div>
+
+  <h3>CADASTRO DE GRUDE</h3>
+  <table id="tabelaAlunos">
+    <thead>
+      <tr>
+        <th>GRUDES</th>
+        <th>QTD KG</th>
+        <th>VALOR / KG</th>
+        <th>Ação</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><input type="text" name="alunoNome[]" onchange="this.value = this.value.toUpperCase()" /></td>
+        <td><input type="number" name="alunoQtd[]" step="0.01" min="0" oninput="calcularTotais()" /></td>
+        <td><input type="number" name="alunoValor[]" step="0.01" min="0" oninput="calcularTotais()" /></td>
+        <td><button onclick="excluirLinha(this)" class="btn-excluir">Excluir</button></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <button onclick="adicionarAluno()">+ Adicionar Grude</button>
+
+  <br><br>
+
+  <h3>DESPESAS GERAIS</h3>
+  <table id="tabelaDespesas">
+    <tr>
+      <th>Descrição da Despesa</th>
+      <th>Valor (R$)</th>
+      <th>Ação</th>
+    </tr>
+    <tr>
+      <td><input type="text" name="despesaDescricao[]" onchange="this.value = this.value.toUpperCase()" /></td>
+      <td><input type="number" name="despesaValor[]" oninput="calcularTotais()" /></td>
+      <td><button onclick="excluirLinha(this)" class="btn-excluir">Excluir</button></td>
+    </tr>
+  </table>
+
+  <button onclick="adicionarDespesa()">+ Adicionar Despesa</button>
+
+  <div class="totais">
+    Entradas: R$ <span id="totalEntradas">0.00</span><br />
+    QTD Kg: <span id="totalQuantidade">0.00</span><br />
+    Despesas: R$ <span id="totalDespesas">0.00</span><br />
+    Saldo: R$ <span id="totalReceita">0.00</span>
+  </div>
+
+  <div class="data-buttons">
+    <button onclick="salvarDados()">Salvar Dados</button>
+    <button onclick="carregarDados()">Carregar Dados</button>
+  </div>
+
+  <div class="export-buttons">
+    <button onclick="exportToExcel()">Exportar para Excel</button>
+    <button onclick="gerarPDF()">Gerar PDF</button>
+  </div>
+
+  <footer class="footer">
+    <p>&copy; 2025 JML-Pescados - Todos os direitos reservados</p>
+  </footer>
+
+  <script src="script.js"></script>
+
+</body>
+</html>
