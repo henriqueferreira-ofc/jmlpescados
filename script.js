@@ -344,8 +344,8 @@ function gerarPDF() {
     const drawRows = (rows, startY, widths) => {
       let y = startY;
       rows.forEach((row) => {
-        const isSaldo = row[0] === "SALDO";
-        doc.setFont("helvetica", isSaldo ? "bold" : "normal");
+        const isSaldoOuTotal = row[0] === "SALDO" || row[0] === "TOTAL";
+        doc.setFont("helvetica", isSaldoOuTotal ? "bold" : "normal");
         let x = marginX;
         row.forEach((cell, index) => {
           const cellWidth = widths[index];
@@ -379,6 +379,10 @@ function gerarPDF() {
           formatNumber(item.total),
         ])
       : [["-", "0,00", "0,00", "0,00"]];
+    const grudeRowsWithTotal = [
+      ...grudeRows,
+      ["TOTAL", "", "", formatNumber(totalEntradas)],
+    ];
 
     currentY = drawHeaderRow(
       ["GRUDES", "QTD (KG)", "VALOR / KG", "TOTAL"],
@@ -386,7 +390,7 @@ function gerarPDF() {
       colWidths,
       ["left", "center", "center", "center"]
     );
-    currentY = drawRows(grudeRows, currentY, colWidths);
+    currentY = drawRows(grudeRowsWithTotal, currentY, colWidths);
 
     currentY += rowHeight; // linha em branco
 
