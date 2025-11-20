@@ -20,11 +20,7 @@ function updateMonth() {
     "Setembro",
     "Outubro",
     "Novembro",
-<<<<<<< HEAD
     "Dezembro",
-=======
-    "Dezembro"
->>>>>>> origin/main
   ];
   const currentDate = new Date();
   document.getElementById("currentMonth").textContent =
@@ -114,52 +110,32 @@ function calcularTotais() {
     document.getElementById("totalEntradas").textContent =
       totalEntradas.toLocaleString("pt-BR", {
         minimumFractionDigits: 2,
-<<<<<<< HEAD
         maximumFractionDigits: 2,
-=======
-        maximumFractionDigits: 2
->>>>>>> origin/main
       });
 
     document.getElementById("totalQuantidade").textContent =
       totalQuantidade.toLocaleString("pt-BR", {
         minimumFractionDigits: 2,
-<<<<<<< HEAD
         maximumFractionDigits: 2,
-=======
-        maximumFractionDigits: 2
->>>>>>> origin/main
       });
 
     document.getElementById("totalDespesas").textContent =
       totalDespesas.toLocaleString("pt-BR", {
         minimumFractionDigits: 2,
-<<<<<<< HEAD
         maximumFractionDigits: 2,
-=======
-        maximumFractionDigits: 2
->>>>>>> origin/main
       });
 
     document.getElementById("totalReceita").textContent =
       totalReceita.toLocaleString("pt-BR", {
         minimumFractionDigits: 2,
-<<<<<<< HEAD
         maximumFractionDigits: 2,
-=======
-        maximumFractionDigits: 2
->>>>>>> origin/main
       });
 
     console.log("Totais atualizados:", {
       totalEntradas,
       totalDespesas,
       totalReceita,
-<<<<<<< HEAD
       totalQuantidade,
-=======
-      totalQuantidade
->>>>>>> origin/main
     });
   } catch (error) {
     console.error("Erro ao calcular totais:", error);
@@ -188,17 +164,10 @@ function exportToExcel() {
       `JML-PESCADOS - BALANCETE - MÊS DE ${mesAtual}`,
       null,
       null,
-<<<<<<< HEAD
       null,
     ]);
     // Cabeçalho das colunas em caixa alta
     data.push(["GRUDES", "QTD (KG)", "VALOR / KG", "TOTAL"]);
-=======
-      null
-    ]);
-    // Cabeçalho das colunas em caixa alta
-    data.push(["GRUDES", "QUANTIDADE (KG)", "VALOR POR KG", "TOTAL"]);
->>>>>>> origin/main
 
     let totalEntradas = 0;
     let totalQuantidade = 0;
@@ -240,11 +209,7 @@ function exportToExcel() {
     // Totais
     data.push(["RESUMO", null, null, null]);
     data.push(["Entradas", totalEntradas, null, null]);
-<<<<<<< HEAD
     data.push(["QTD Total (KG)", totalQuantidade, null, null]);
-=======
-    data.push(["Quantidade Total (KG)", totalQuantidade, null, null]);
->>>>>>> origin/main
     data.push(["Despesas", totalDespesas, null, null]);
     data.push(["Saldo", totalEntradas - totalDespesas, null, null]);
 
@@ -256,13 +221,8 @@ function exportToExcel() {
       { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } }, // Título
       {
         s: { r: data.findIndex((row) => row[0] === "RESUMO"), c: 0 },
-<<<<<<< HEAD
         e: { r: data.findIndex((row) => row[0] === "RESUMO"), c: 3 },
       }, // RESUMO
-=======
-        e: { r: data.findIndex((row) => row[0] === "RESUMO"), c: 3 }
-      } // RESUMO
->>>>>>> origin/main
     ];
 
     // Configurar largura das colunas
@@ -270,11 +230,7 @@ function exportToExcel() {
       { wch: 30 }, // Coluna A - GRUDES/Descrição
       { wch: 15 }, // Coluna B - Valores
       { wch: 15 }, // Coluna C - Valores
-<<<<<<< HEAD
       { wch: 15 }, // Coluna D - Valores
-=======
-      { wch: 15 } // Coluna D - Valores
->>>>>>> origin/main
     ];
 
     // Formatar células numéricas
@@ -306,7 +262,6 @@ function gerarPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     const mesAtual = document.getElementById("currentMonth").textContent;
-<<<<<<< HEAD
     const marginX = 10;
     const rowHeight = 9;
     const formatNumber = (value) =>
@@ -319,38 +274,10 @@ function gerarPDF() {
     const totalTableWidth = colWidths.reduce((acc, w) => acc + w, 0);
     const twoColWidths = [totalTableWidth - 70, 70];
     doc.setLineWidth(0.2);
-=======
-
-    // Configurações
-    doc.setFont("helvetica");
-    doc.setFontSize(16);
-
-    // Título em negrito
-    doc.setFont("helvetica", "bold");
-    doc.text(
-      `JML-PESCADOS - BALANCETE - MÊS DE ${mesAtual.toUpperCase()}`,
-      105,
-      20,
-      {
-        align: "center"
-      }
-    );
-    doc.setFont("helvetica", "normal");
-
-    let y = 40;
-
-    // Lista de Grudes
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    doc.text("GRUDES E VALORES:", 20, y);
-    doc.setFont("helvetica", "normal");
-    y += 10;
->>>>>>> origin/main
 
     const nomes = document.getElementsByName("alunoNome[]");
     const quantidades = document.getElementsByName("alunoQtd[]");
     const valores = document.getElementsByName("alunoValor[]");
-<<<<<<< HEAD
     const descricoes = document.getElementsByName("despesaDescricao[]");
     const valoresDespesa = document.getElementsByName("despesaValor[]");
 
@@ -488,76 +415,6 @@ function gerarPDF() {
 
     drawRows(resumoRows, currentY, twoColWidths);
 
-=======
-
-    doc.setFontSize(12);
-    for (let i = 0; i < nomes.length; i++) {
-      if (nomes[i].value) {
-        const quantidade = quantidades[i].value || "0.00";
-        const valor = valores[i].value || "0.00";
-        const valorTotal = (parseFloat(quantidade) * parseFloat(valor)).toFixed(
-          2
-        );
-
-        doc.text(`${nomes[i].value}:`, 30, y);
-        y += 8;
-        doc.text(`Quantidade: ${quantidade} kg`, 40, y);
-        y += 8;
-        doc.text(`Valor por kg: R$ ${valor}`, 40, y);
-        y += 8;
-        doc.text(`Total: R$ ${valorTotal}`, 40, y);
-        y += 12;
-      }
-    }
-
-    // Lista de Despesas
-    y += 10;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    doc.text("DESPESAS:", 20, y);
-    doc.setFont("helvetica", "normal");
-    y += 10;
-
-    const descricoes = document.getElementsByName("despesaDescricao[]");
-    const valoresDespesa = document.getElementsByName("despesaValor[]");
-
-    doc.setFontSize(12);
-    for (let i = 0; i < descricoes.length; i++) {
-      if (descricoes[i].value) {
-        doc.text(
-          `${descricoes[i].value}: R$ ${valoresDespesa[i].value || "0.00"}`,
-          30,
-          y
-        );
-        y += 8;
-      }
-    }
-
-    // Totais
-    y += 15;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    doc.text("RESUMO:", 20, y);
-    doc.setFont("helvetica", "normal");
-    y += 10;
-
-    // Formatar valores com separador de milhar
-    const totalEntradas = document.getElementById("totalEntradas").textContent;
-    const totalQuantidade =
-      document.getElementById("totalQuantidade").textContent;
-    const totalDespesas = document.getElementById("totalDespesas").textContent;
-    const totalReceita = document.getElementById("totalReceita").textContent;
-
-    doc.text(`Entradas: R$ ${totalEntradas}`, 30, y);
-    y += 8;
-    doc.text(`Quantidade Total: ${totalQuantidade} kg`, 30, y);
-    y += 8;
-    doc.text(`Despesas: R$ ${totalDespesas}`, 30, y);
-    y += 8;
-    doc.text(`Saldo: R$ ${totalReceita}`, 30, y);
-
-    // Salvar PDF
->>>>>>> origin/main
     doc.save(`balancete_${mesAtual.toLowerCase()}.pdf`);
 
     console.log("PDF gerado com sucesso");
@@ -576,11 +433,7 @@ function salvarDados() {
 
     const dados = {
       alunos: [],
-<<<<<<< HEAD
       despesas: [],
-=======
-      despesas: []
->>>>>>> origin/main
     };
 
     // Salvar dados dos alunos
@@ -592,11 +445,7 @@ function salvarDados() {
         dados.alunos.push({
           nome: nomes[i].value,
           qtd: quantidades[i].value,
-<<<<<<< HEAD
           valor: valores[i].value,
-=======
-          valor: valores[i].value
->>>>>>> origin/main
         });
       }
     }
@@ -608,11 +457,7 @@ function salvarDados() {
       if (descricoes[i].value) {
         dados.despesas.push({
           descricao: descricoes[i].value,
-<<<<<<< HEAD
           valor: valoresDespesa[i].value,
-=======
-          valor: valoresDespesa[i].value
->>>>>>> origin/main
         });
       }
     }
@@ -650,11 +495,7 @@ function carregarDados() {
               <tr>
                 <th>GRUDES</th>
                 <th>QTD KG</th>
-<<<<<<< HEAD
                 <th>VALOR / KG</th>
-=======
-                <th>VALOR KG</th>
->>>>>>> origin/main
                 <th>Ação</th>
               </tr>
             </thead>
