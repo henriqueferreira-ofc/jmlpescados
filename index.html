@@ -16,11 +16,11 @@
     <h1>JML-Pescados - Balancete - Mês de <span id="currentMonth"></span></h1>
   </div>
 
-  <h3>CADASTRO DE GRUDE</h3>
+  <h3>CADASTRO DE GRUDE SECA</h3>
   <table id="tabelaAlunos">
     <thead>
       <tr>
-        <th>GRUDES</th>
+        <th>GRUDE SECA</th>
         <th>QTD KG</th>
         <th>VALOR / KG</th>
         <th>Ação</th>
@@ -36,7 +36,33 @@
     </tbody>
   </table>
 
-  <button onclick="adicionarAluno()">+ Adicionar Grude</button>
+  <button onclick="adicionarAluno()">+ Adicionar Grude Seca</button>
+
+  <br><br>
+
+  <h3>CADASTRO DE GRUDE FRESCA</h3>
+  <table id="tabelaGrudeFresca">
+    <thead>
+      <tr>
+        <th>GRUDE VERDE</th>
+        <th>KG</th>
+        <th>KG 1/2</th>
+        <th>VALOR / KG</th>
+        <th>Ação</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><input type="text" name="grudeFrescaNome[]" onchange="this.value = this.value.toUpperCase()" /></td>
+        <td><input type="number" name="grudeFrescaKg[]" step="0.01" min="0" oninput="atualizarMetade(this)" /></td>
+        <td><input type="number" name="grudeFrescaKgMetade[]" step="0.01" min="0" readonly /></td>
+        <td><input type="number" name="grudeFrescaValor[]" step="0.01" min="0" oninput="calcularTotais()" /></td>
+        <td><button onclick="excluirLinha(this)" class="btn-excluir">Excluir</button></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <button onclick="adicionarGrudeFresca()">+ Adicionar Grude Fresca</button>
 
   <br><br>
 

@@ -74,6 +74,31 @@ td:last-child {
   width: 15%;
 }
 
+#tabelaGrudeFresca th:first-child,
+#tabelaGrudeFresca td:first-child {
+  width: 30%;
+}
+
+#tabelaGrudeFresca th:nth-child(2),
+#tabelaGrudeFresca td:nth-child(2) {
+  width: 17%;
+}
+
+#tabelaGrudeFresca th:nth-child(3),
+#tabelaGrudeFresca td:nth-child(3) {
+  width: 17%;
+}
+
+#tabelaGrudeFresca th:nth-child(4),
+#tabelaGrudeFresca td:nth-child(4) {
+  width: 19%;
+}
+
+#tabelaGrudeFresca th:last-child,
+#tabelaGrudeFresca td:last-child {
+  width: 17%;
+}
+
 th {
   background-color: rgb(66, 44, 160);
   color: white;
