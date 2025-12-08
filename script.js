@@ -518,7 +518,7 @@ function gerarPDF() {
     ];
 
     currentY = drawHeaderRow(
-      ["GRUDE SECA", "QTD (KG)", "VALOR / KG", "TOTAL"],
+      ["GRUDE SECA", "QTD (KG)", "VALOR/KG", "TOTAL"],
       currentY,
       colWidths,
       ["left", "center", "center", "center"]
@@ -548,7 +548,7 @@ function gerarPDF() {
       "left"
     );
     currentY = drawHeaderRow(
-      ["GRUDES", "KG", "KG 1/2", "VALOR / KG", "TOTAL"],
+      ["GRUDES", "KG", "KG 1/2", "VALOR/KG", "TOTAL"],
       currentY,
       colWidthsFresca,
       ["left", "center", "center", "center", "center"]
@@ -687,7 +687,7 @@ function carregarDados() {
               <tr>
                 <th>GRUDE SECA</th>
                 <th>QTD KG</th>
-                <th>VALOR / KG</th>
+                <th>VALOR/KG</th>
                 <th>Ação</th>
               </tr>
             </thead>
@@ -701,7 +701,7 @@ function carregarDados() {
                 <th>GRUDES</th>
                 <th>KG</th>
                 <th>KG 1/2</th>
-                <th>VALOR / KG</th>
+                <th>VALOR/KG</th>
                 <th>Ação</th>
               </tr>
             </thead>
