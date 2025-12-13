@@ -377,7 +377,14 @@ function gerarPDF() {
     const colWidths = [80, 35, 35, 40]; // tabela grude seca (soma 190)
     const colWidthsFresca = [60, 30, 30, 30, 40]; // tabela grude fresca (mais espaço no TOTAL)
     const twoColWidths = [totalTableWidth - 70, 70];
+    // Colunas para o bloco de fornecedor: rótulo curto e campo longo
+    const supplierColWidths = [28, totalTableWidth - 28];
     doc.setLineWidth(0.2);
+
+    const fornecedorNome =
+      (document.getElementById("supplierName")?.value || "")
+        .trim()
+        .toUpperCase();
 
     const nomes = document.getElementsByName("alunoNome[]");
     const quantidades = document.getElementsByName("alunoQtd[]");
@@ -509,6 +516,16 @@ function gerarPDF() {
       totalTableWidth,
       "left"
     );
+
+    currentY = drawMergedRow("FORNECEDOR", currentY, totalTableWidth, "left");
+    currentY = drawHeaderRow(
+      ["NOME", fornecedorNome || "-"],
+      currentY,
+      supplierColWidths,
+      ["left", "left"]
+    );
+
+    currentY += rowHeight; // linha em branco antes dos quadros
 
     const grudeRows = grudes.length
       ? grudes.map((item) => [
