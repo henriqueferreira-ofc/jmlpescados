@@ -7,6 +7,12 @@ document.addEventListener("DOMContentLoaded", function () {
   calcularTotais();
 });
 
+// Configura o worker do PDF.js para a conversão em imagem no gerarJPG
+if (window.pdfjsLib && window.pdfjsLib.GlobalWorkerOptions) {
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+}
+
 function updateMonth() {
   const months = [
     "Janeiro",
@@ -364,333 +370,7 @@ function exportToExcel() {
 
 async function gerarPDF() {
   try {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    const logo = await loadImage("public/LogoPreta.png");
-    const mesAtual = document.getElementById("currentMonth").textContent;
-    const marginX = 10;
-    const rowHeight = 9;
-    const formatNumber = (value) =>
-      Number(value || 0).toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-    const dataRelatorio = new Date().toLocaleDateString("pt-BR"); // dd/mm/aaaa
-    const totalTableWidth = 190; // largura fixa para alinhar todos os quadros
-    const colWidths = [80, 35, 35, 40]; // tabela grude seca (soma 190)
-    const colWidthsFresca = [60, 30, 30, 30, 40]; // tabela grude fresca (mais espaço no TOTAL)
-    const twoColWidths = [totalTableWidth - 70, 70];
-    const supplierLabel = "FORNECEDOR";
-    const supplierLabelWidth = Math.min(
-      Math.max(doc.getTextWidth(supplierLabel) + 4, 30),
-      45
-    ); // largura adaptável, mais justa ao texto
-    const supplierColWidths = [
-      supplierLabelWidth,
-      totalTableWidth - supplierLabelWidth,
-    ];
-    doc.setLineWidth(0.2);
-
-    const fornecedorNome = (
-      document.getElementById("supplierName")?.value || ""
-    )
-      .trim()
-      .toUpperCase();
-
-    const nomes = document.getElementsByName("alunoNome[]");
-    const quantidades = document.getElementsByName("alunoQtd[]");
-    const valores = document.getElementsByName("alunoValor[]");
-    const grudeFrescaNome = document.getElementsByName("grudeFrescaNome[]");
-    const grudeFrescaKg = document.getElementsByName("grudeFrescaKg[]");
-    const grudeFrescaValor = document.getElementsByName("grudeFrescaValor[]");
-    const descricoes = document.getElementsByName("despesaDescricao[]");
-    const valoresDespesa = document.getElementsByName("despesaValor[]");
-
-    const grudes = [];
-    for (let i = 0; i < nomes.length; i++) {
-      if (nomes[i].value) {
-        const quantidade = parseFloat(quantidades[i].value || 0);
-        const valorPorKg = parseFloat(valores[i].value || 0);
-        grudes.push({
-          nome: nomes[i].value,
-          quantidade,
-          valor: valorPorKg,
-          total: quantidade * valorPorKg,
-        });
-      }
-    }
-
-    const grudesFresca = [];
-    for (let i = 0; i < grudeFrescaNome.length; i++) {
-      if (
-        grudeFrescaNome[i].value ||
-        grudeFrescaKg[i].value ||
-        grudeFrescaValor[i].value
-      ) {
-        const kg = parseFloat(grudeFrescaKg[i].value || 0);
-        const kgMetade = kg / 2;
-        const valorPorKg = parseFloat(grudeFrescaValor[i].value || 0);
-        grudesFresca.push({
-          nome: grudeFrescaNome[i].value,
-          kg,
-          kgMetade,
-          valor: valorPorKg,
-          total: kgMetade * valorPorKg,
-        });
-      }
-    }
-
-    const despesas = [];
-    for (let i = 0; i < descricoes.length; i++) {
-      if (descricoes[i].value) {
-        const valor = parseFloat(valoresDespesa[i].value || 0);
-        despesas.push({ descricao: descricoes[i].value, valor });
-      }
-    }
-
-    const totalEntradasPadrão = grudes.reduce(
-      (acc, item) => acc + item.total,
-      0
-    );
-    const totalEntradasFresca = grudesFresca.reduce(
-      (acc, item) => acc + item.total,
-      0
-    );
-    const totalQuantidadeSeca = grudes.reduce(
-      (acc, item) => acc + item.quantidade,
-      0
-    );
-    const totalKgFresca = grudesFresca.reduce((acc, item) => acc + item.kg, 0);
-    const totalQuantidadeFresca = grudesFresca.reduce(
-      (acc, item) => acc + item.kgMetade,
-      0
-    );
-    const totalEntradas = totalEntradasPadrão + totalEntradasFresca;
-    const totalQuantidade = totalQuantidadeSeca + totalQuantidadeFresca;
-    const totalDespesas = despesas.reduce((acc, item) => acc + item.valor, 0);
-    const saldo = totalEntradas - totalDespesas;
-
-    const drawMergedRow = (
-      text,
-      startY,
-      width = totalTableWidth,
-      align = "center"
-    ) => {
-      doc.setFont("helvetica", "bold");
-      doc.rect(marginX, startY, width, rowHeight);
-      const textX = align === "left" ? marginX + 2 : marginX + width / 2;
-      doc.text(String(text), textX, startY + rowHeight / 2 + 2, { align });
-      return startY + rowHeight;
-    };
-
-    const drawHeaderRow = (
-      cells,
-      startY,
-      widths,
-      alignments = [],
-      boldFlags = []
-    ) => {
-      let x = marginX;
-      cells.forEach((cell, index) => {
-        const cellWidth = widths[index];
-        const isBold = boldFlags[index] !== undefined ? boldFlags[index] : true;
-        doc.setFont("helvetica", isBold ? "bold" : "normal");
-        doc.rect(x, startY, cellWidth, rowHeight);
-        doc.text(
-          String(cell || ""),
-          alignments[index] === "left" ? x + 2 : x + cellWidth / 2,
-          startY + rowHeight / 2 + 2,
-          { align: alignments[index] || "center" }
-        );
-        x += cellWidth;
-      });
-      return startY + rowHeight;
-    };
-
-    const drawRows = (rows, startY, widths, alignments = []) => {
-      let y = startY;
-      rows.forEach((row) => {
-        const isSaldoOuTotal = row[0] === "SALDO" || row[0] === "TOTAL";
-        doc.setFont("helvetica", isSaldoOuTotal ? "bold" : "normal");
-        let x = marginX;
-        row.forEach((cell, index) => {
-          const cellWidth = widths[index];
-          const text = cell == null ? "" : cell;
-          const align =
-            alignments[index] || (index === 0 ? "left" : "right");
-          const textX =
-            align === "right"
-              ? x + cellWidth - 2
-              : align === "center"
-              ? x + cellWidth / 2
-              : x + 2;
-          doc.rect(x, y, cellWidth, rowHeight);
-          doc.text(String(text), textX, y + rowHeight / 2 + 2, { align });
-          x += cellWidth;
-        });
-        y += rowHeight;
-      });
-      return y;
-    };
-
-    // Cabeçalho visual centralizado com logo preta e texto sublinhado em preto
-    doc.setTextColor(0, 0, 0);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
-
-    const logoWidth = 30;
-    const logoHeight = 30;
-    const logoY = 10;
-    const headerText = "JML-Pescados";
-    const textWidth = doc.getTextWidth(headerText);
-    const separatorLength = 10; // traço mais curto
-    const separatorGap = 6;
-    const spacerAfterLogo = 3;
-
-    const headerGroupWidth =
-      logoWidth + spacerAfterLogo + separatorLength + separatorGap + textWidth;
-    const startX = marginX + (totalTableWidth - headerGroupWidth) / 2;
-
-    const logoX = startX;
-    doc.addImage(logo, "PNG", logoX, logoY, logoWidth, logoHeight);
-
-    const midY = logoY + logoHeight / 2;
-    const lineY = midY + 1; // leve ajuste para parecer centralizado
-    const lineX1 = logoX + logoWidth + spacerAfterLogo;
-    const lineX2 = lineX1 + separatorLength;
-    const previousLineWidth = doc.getLineWidth();
-    doc.setLineWidth(0.8);
-    doc.line(lineX1, lineY, lineX2, lineY);
-
-    const textX = lineX2 + separatorGap;
-    const textY = midY + 3; // levanta mais o texto para alinhar com a logo
-    doc.text(headerText, textX, textY);
-
-    const underlineWidth = textWidth; // sublinhado ajustado ao tamanho do texto
-    doc.line(textX, textY + 2, textX + underlineWidth, textY + 2);
-    doc.setLineWidth(previousLineWidth);
-    doc.setFontSize(12);
-
-    const headerBottom = Math.max(logoY + logoHeight, textY + 3);
-    let currentY = headerBottom + 6;
-
-    currentY = drawMergedRow("BALANCETE", currentY);
-    currentY = drawMergedRow(
-      `JML-PESCADOS - ${dataRelatorio}`,
-      currentY,
-      totalTableWidth,
-      "left"
-    );
-
-    currentY = drawHeaderRow(
-      ["FORNECEDOR", fornecedorNome || "-"],
-      currentY,
-      supplierColWidths,
-      ["left", "left"],
-      [true, false]
-    );
-
-    currentY += rowHeight; // linha em branco antes dos quadros
-
-    const grudeRows = grudes.length
-      ? grudes.map((item) => [
-          item.nome,
-          formatNumber(item.quantidade),
-          formatNumber(item.valor),
-          formatNumber(item.total),
-        ])
-      : [["-", "0,00", "0,00", "0,00"]];
-    const grudeRowsWithTotal = [
-      ...grudeRows,
-      [
-        "TOTAL",
-        formatNumber(totalQuantidadeSeca),
-        "",
-        formatNumber(totalEntradasPadrão),
-      ],
-    ];
-
-    currentY = drawHeaderRow(
-      ["GRUDE SECA", "QTD (KG)", "VALOR/KG", "TOTAL"],
-      currentY,
-      colWidths,
-      ["left", "center", "center", "center"]
-    );
-    currentY = drawRows(
-      grudeRowsWithTotal,
-      currentY,
-      colWidths,
-      ["left", "center", "center", "center"]
-    );
-
-    currentY += rowHeight; // linha em branco
-
-    const grudeFrescaRows = grudesFresca.length
-      ? grudesFresca.map((item) => [
-          item.nome,
-          formatNumber(item.kg),
-          formatNumber(item.kgMetade),
-          formatNumber(item.valor),
-          formatNumber(item.total),
-        ])
-      : [["-", "0,00", "0,00", "0,00", "0,00"]];
-    const grudeFrescaRowsWithTotal = [
-      ...grudeFrescaRows,
-      [
-        "TOTAL",
-        formatNumber(totalKgFresca),
-        formatNumber(totalQuantidadeFresca),
-        "",
-        formatNumber(totalEntradasFresca),
-      ],
-    ];
-
-    currentY = drawMergedRow(
-      "GRUDE FRESCA",
-      currentY,
-      colWidthsFresca.reduce((acc, w) => acc + w, 0),
-      "left"
-    );
-    currentY = drawHeaderRow(
-      ["GRUDES", "KG", "KG 1/2", "VALOR/KG", "TOTAL"],
-      currentY,
-      colWidthsFresca,
-      ["left", "center", "center", "center", "center"]
-    );
-    currentY = drawRows(
-      grudeFrescaRowsWithTotal,
-      currentY,
-      colWidthsFresca,
-      ["left", "center", "center", "center", "center"]
-    );
-
-    currentY += rowHeight; // linha em branco
-
-    currentY = drawMergedRow("DESPESAS", currentY, totalTableWidth, "left");
-    currentY = drawHeaderRow(["Descrição", "VALOR"], currentY, twoColWidths, [
-      "left",
-      "center",
-    ]);
-
-    const despRows = despesas.length
-      ? despesas.map((item) => [item.descricao, formatNumber(item.valor)])
-      : [["-", "0,00"]];
-
-    currentY = drawRows(despRows, currentY, twoColWidths);
-
-    currentY += rowHeight; // linha em branco
-
-    currentY = drawMergedRow("RESUMO", currentY, totalTableWidth, "left");
-
-    const resumoRows = [
-      ["Entradas", formatNumber(totalEntradas)],
-      ["QTD Total (KG)", formatNumber(totalQuantidade)],
-      ["Despesas", formatNumber(totalDespesas)],
-      ["SALDO", formatNumber(saldo)],
-    ];
-
-    drawRows(resumoRows, currentY, twoColWidths);
-
+    const { doc, mesAtual } = await criarDocumentoBalancete();
     doc.save(`balancete_${mesAtual.toLowerCase()}.pdf`);
 
     console.log("PDF gerado com sucesso");
@@ -702,14 +382,22 @@ async function gerarPDF() {
 
 async function gerarJPG() {
   try {
-    const mesAtual = document.getElementById("currentMonth").textContent;
-    const target = document.body;
+    const { doc, mesAtual } = await criarDocumentoBalancete();
+    const pdfData = doc.output("arraybuffer");
 
-    const canvas = await html2canvas(target, {
-      scale: 2, // melhora a definição da imagem
-      useCORS: true,
-      logging: false,
-    });
+    if (!window.pdfjsLib) {
+      throw new Error("PDF.js não carregado para gerar JPG.");
+    }
+
+    const pdf = await window.pdfjsLib.getDocument({ data: pdfData }).promise;
+    const page = await pdf.getPage(1);
+    const viewport = page.getViewport({ scale: 2 });
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    await page.render({ canvasContext: context, viewport }).promise;
 
     const dataURL = canvas.toDataURL("image/jpeg", 0.95);
     const link = document.createElement("a");
@@ -722,6 +410,334 @@ async function gerarJPG() {
     console.error("Erro ao gerar JPG:", erro);
     alert("Erro ao gerar JPG!");
   }
+}
+
+async function criarDocumentoBalancete() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const logo = await loadImage("public/LogoPreta.png");
+  const mesAtual = document.getElementById("currentMonth").textContent;
+  const marginX = 10;
+  const rowHeight = 9;
+  const formatNumber = (value) =>
+    Number(value || 0).toLocaleString("pt-BR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  const dataRelatorio = new Date().toLocaleDateString("pt-BR"); // dd/mm/aaaa
+  const totalTableWidth = 190; // largura fixa para alinhar todos os quadros
+  const colWidths = [80, 35, 35, 40]; // tabela grude seca (soma 190)
+  const colWidthsFresca = [60, 30, 30, 30, 40]; // tabela grude fresca (mais espaço no TOTAL)
+  const twoColWidths = [totalTableWidth - 70, 70];
+  const supplierLabel = "FORNECEDOR";
+  const supplierLabelWidth = Math.min(
+    Math.max(doc.getTextWidth(supplierLabel) + 4, 30),
+    45
+  ); // largura adaptável, mais justa ao texto
+  const supplierColWidths = [
+    supplierLabelWidth,
+    totalTableWidth - supplierLabelWidth,
+  ];
+  doc.setLineWidth(0.2);
+
+  const fornecedorNome = (
+    document.getElementById("supplierName")?.value || ""
+  )
+    .trim()
+    .toUpperCase();
+
+  const nomes = document.getElementsByName("alunoNome[]");
+  const quantidades = document.getElementsByName("alunoQtd[]");
+  const valores = document.getElementsByName("alunoValor[]");
+  const grudeFrescaNome = document.getElementsByName("grudeFrescaNome[]");
+  const grudeFrescaKg = document.getElementsByName("grudeFrescaKg[]");
+  const grudeFrescaValor = document.getElementsByName("grudeFrescaValor[]");
+  const descricoes = document.getElementsByName("despesaDescricao[]");
+  const valoresDespesa = document.getElementsByName("despesaValor[]");
+
+  const grudes = [];
+  for (let i = 0; i < nomes.length; i++) {
+    if (nomes[i].value) {
+      const quantidade = parseFloat(quantidades[i].value || 0);
+      const valorPorKg = parseFloat(valores[i].value || 0);
+      grudes.push({
+        nome: nomes[i].value,
+        quantidade,
+        valor: valorPorKg,
+        total: quantidade * valorPorKg,
+      });
+    }
+  }
+
+  const grudesFresca = [];
+  for (let i = 0; i < grudeFrescaNome.length; i++) {
+    if (
+      grudeFrescaNome[i].value ||
+      grudeFrescaKg[i].value ||
+      grudeFrescaValor[i].value
+    ) {
+      const kg = parseFloat(grudeFrescaKg[i].value || 0);
+      const kgMetade = kg / 2;
+      const valorPorKg = parseFloat(grudeFrescaValor[i].value || 0);
+      grudesFresca.push({
+        nome: grudeFrescaNome[i].value,
+        kg,
+        kgMetade,
+        valor: valorPorKg,
+        total: kgMetade * valorPorKg,
+      });
+    }
+  }
+
+  const despesas = [];
+  for (let i = 0; i < descricoes.length; i++) {
+    if (descricoes[i].value) {
+      const valor = parseFloat(valoresDespesa[i].value || 0);
+      despesas.push({ descricao: descricoes[i].value, valor });
+    }
+  }
+
+  const totalEntradasPadrão = grudes.reduce((acc, item) => acc + item.total, 0);
+  const totalEntradasFresca = grudesFresca.reduce(
+    (acc, item) => acc + item.total,
+    0
+  );
+  const totalQuantidadeSeca = grudes.reduce(
+    (acc, item) => acc + item.quantidade,
+    0
+  );
+  const totalKgFresca = grudesFresca.reduce((acc, item) => acc + item.kg, 0);
+  const totalQuantidadeFresca = grudesFresca.reduce(
+    (acc, item) => acc + item.kgMetade,
+    0
+  );
+  const totalEntradas = totalEntradasPadrão + totalEntradasFresca;
+  const totalQuantidade = totalQuantidadeSeca + totalQuantidadeFresca;
+  const totalDespesas = despesas.reduce((acc, item) => acc + item.valor, 0);
+  const saldo = totalEntradas - totalDespesas;
+
+  const drawMergedRow = (
+    text,
+    startY,
+    width = totalTableWidth,
+    align = "center"
+  ) => {
+    doc.setFont("helvetica", "bold");
+    doc.rect(marginX, startY, width, rowHeight);
+    const textX = align === "left" ? marginX + 2 : marginX + width / 2;
+    doc.text(String(text), textX, startY + rowHeight / 2 + 2, { align });
+    return startY + rowHeight;
+  };
+
+  const drawHeaderRow = (
+    cells,
+    startY,
+    widths,
+    alignments = [],
+    boldFlags = []
+  ) => {
+    let x = marginX;
+    cells.forEach((cell, index) => {
+      const cellWidth = widths[index];
+      const isBold = boldFlags[index] !== undefined ? boldFlags[index] : true;
+      doc.setFont("helvetica", isBold ? "bold" : "normal");
+      doc.rect(x, startY, cellWidth, rowHeight);
+      doc.text(
+        String(cell || ""),
+        alignments[index] === "left" ? x + 2 : x + cellWidth / 2,
+        startY + rowHeight / 2 + 2,
+        { align: alignments[index] || "center" }
+      );
+      x += cellWidth;
+    });
+    return startY + rowHeight;
+  };
+
+  const drawRows = (rows, startY, widths, alignments = []) => {
+    let y = startY;
+    rows.forEach((row) => {
+      const isSaldoOuTotal = row[0] === "SALDO" || row[0] === "TOTAL";
+      doc.setFont("helvetica", isSaldoOuTotal ? "bold" : "normal");
+      let x = marginX;
+      row.forEach((cell, index) => {
+        const cellWidth = widths[index];
+        const text = cell == null ? "" : cell;
+        const align =
+          alignments[index] || (index === 0 ? "left" : "right");
+        const textX =
+          align === "right"
+            ? x + cellWidth - 2
+            : align === "center"
+            ? x + cellWidth / 2
+            : x + 2;
+        doc.rect(x, y, cellWidth, rowHeight);
+        doc.text(String(text), textX, y + rowHeight / 2 + 2, { align });
+        x += cellWidth;
+      });
+      y += rowHeight;
+    });
+    return y;
+  };
+
+  // Cabeçalho visual centralizado com logo preta e texto sublinhado em preto
+  doc.setTextColor(0, 0, 0);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(18);
+
+  const logoWidth = 30;
+  const logoHeight = 30;
+  const logoY = 10;
+  const headerText = "JML-Pescados";
+  const textWidth = doc.getTextWidth(headerText);
+  const separatorLength = 10; // traço mais curto
+  const separatorGap = 6;
+  const spacerAfterLogo = 3;
+
+  const headerGroupWidth =
+    logoWidth + spacerAfterLogo + separatorLength + separatorGap + textWidth;
+  const startX = marginX + (totalTableWidth - headerGroupWidth) / 2;
+
+  const logoX = startX;
+  doc.addImage(logo, "PNG", logoX, logoY, logoWidth, logoHeight);
+
+  const midY = logoY + logoHeight / 2;
+  const lineY = midY + 1; // leve ajuste para parecer centralizado
+  const lineX1 = logoX + logoWidth + spacerAfterLogo;
+  const lineX2 = lineX1 + separatorLength;
+  const previousLineWidth = doc.getLineWidth();
+  doc.setLineWidth(0.8);
+  doc.line(lineX1, lineY, lineX2, lineY);
+
+  const textX = lineX2 + separatorGap;
+  const textY = midY + 3; // levanta mais o texto para alinhar com a logo
+  doc.text(headerText, textX, textY);
+
+  const underlineWidth = textWidth; // sublinhado ajustado ao tamanho do texto
+  doc.line(textX, textY + 2, textX + underlineWidth, textY + 2);
+  doc.setLineWidth(previousLineWidth);
+  doc.setFontSize(12);
+
+  const headerBottom = Math.max(logoY + logoHeight, textY + 3);
+  let currentY = headerBottom + 6;
+
+  currentY = drawMergedRow("BALANCETE", currentY);
+  currentY = drawMergedRow(
+    `JML-PESCADOS - ${dataRelatorio}`,
+    currentY,
+    totalTableWidth,
+    "left"
+  );
+
+  currentY = drawHeaderRow(
+    ["FORNECEDOR", fornecedorNome || "-"],
+    currentY,
+    supplierColWidths,
+    ["left", "left"],
+    [true, false]
+  );
+
+  currentY += rowHeight; // linha em branco antes dos quadros
+
+  const grudeRows = grudes.length
+    ? grudes.map((item) => [
+        item.nome,
+        formatNumber(item.quantidade),
+        formatNumber(item.valor),
+        formatNumber(item.total),
+      ])
+    : [["-", "0,00", "0,00", "0,00"]];
+  const grudeRowsWithTotal = [
+    ...grudeRows,
+    [
+      "TOTAL",
+      formatNumber(totalQuantidadeSeca),
+      "",
+      formatNumber(totalEntradasPadrão),
+    ],
+  ];
+
+  currentY = drawHeaderRow(
+    ["GRUDE SECA", "QTD (KG)", "VALOR/KG", "TOTAL"],
+    currentY,
+    colWidths,
+    ["left", "center", "center", "center"]
+  );
+  currentY = drawRows(
+    grudeRowsWithTotal,
+    currentY,
+    colWidths,
+    ["left", "center", "center", "center"]
+  );
+
+  currentY += rowHeight; // linha em branco
+
+  const grudeFrescaRows = grudesFresca.length
+    ? grudesFresca.map((item) => [
+        item.nome,
+        formatNumber(item.kg),
+        formatNumber(item.kgMetade),
+        formatNumber(item.valor),
+        formatNumber(item.total),
+      ])
+    : [["-", "0,00", "0,00", "0,00", "0,00"]];
+  const grudeFrescaRowsWithTotal = [
+    ...grudeFrescaRows,
+    [
+      "TOTAL",
+      formatNumber(totalKgFresca),
+      formatNumber(totalQuantidadeFresca),
+      "",
+      formatNumber(totalEntradasFresca),
+    ],
+  ];
+
+  currentY = drawMergedRow(
+    "GRUDE FRESCA",
+    currentY,
+    colWidthsFresca.reduce((acc, w) => acc + w, 0),
+    "left"
+  );
+  currentY = drawHeaderRow(
+    ["GRUDES", "KG", "KG 1/2", "VALOR/KG", "TOTAL"],
+    currentY,
+    colWidthsFresca,
+    ["left", "center", "center", "center", "center"]
+  );
+  currentY = drawRows(
+    grudeFrescaRowsWithTotal,
+    currentY,
+    colWidthsFresca,
+    ["left", "center", "center", "center", "center"]
+  );
+
+  currentY += rowHeight; // linha em branco
+
+  currentY = drawMergedRow("DESPESAS", currentY, totalTableWidth, "left");
+  currentY = drawHeaderRow(["Descrição", "VALOR"], currentY, twoColWidths, [
+    "left",
+    "center",
+  ]);
+
+  const despRows = despesas.length
+    ? despesas.map((item) => [item.descricao, formatNumber(item.valor)])
+    : [["-", "0,00"]];
+
+  currentY = drawRows(despRows, currentY, twoColWidths);
+
+  currentY += rowHeight; // linha em branco
+
+  currentY = drawMergedRow("RESUMO", currentY, totalTableWidth, "left");
+
+  const resumoRows = [
+    ["Entradas", formatNumber(totalEntradas)],
+    ["QTD Total (KG)", formatNumber(totalQuantidade)],
+    ["Despesas", formatNumber(totalDespesas)],
+    ["SALDO", formatNumber(saldo)],
+  ];
+
+  drawRows(resumoRows, currentY, twoColWidths);
+
+  return { doc, mesAtual };
 }
 
 // Função para salvar dados
