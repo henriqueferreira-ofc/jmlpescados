@@ -103,6 +103,19 @@ td:last-child {
   width: 15%;
 }
 
+/* Centraliza o conteúdo da coluna de ações e o botão de excluir */
+td:last-child {
+  text-align: center;
+}
+
+.btn-excluir {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  min-width: 90px;
+}
+
 #tabelaGrudeFresca th:first-child,
 #tabelaGrudeFresca td:first-child {
   width: 30%;
