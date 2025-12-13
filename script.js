@@ -90,9 +90,7 @@ function adicionarGrudeFresca() {
 
 function atualizarMetade(inputKg) {
   const row = inputKg.closest("tr");
-  const metadeInput = row.querySelector(
-    'input[name="grudeFrescaKgMetade[]"]'
-  );
+  const metadeInput = row.querySelector('input[name="grudeFrescaKgMetade[]"]');
   if (!metadeInput) return;
 
   const kg = parseFloat(inputKg.value) || 0;
@@ -208,6 +206,16 @@ function calcularTotais() {
   }
 }
 
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
 function exportToExcel() {
   try {
     const workbook = XLSX.utils.book_new();
@@ -276,13 +284,7 @@ function exportToExcel() {
         const valorKg = parseFloat(grudeFrescaValor[i].value || 0);
         const total = kgMetade * valorKg;
 
-        data.push([
-          grudeFrescaNome[i].value,
-          kg,
-          kgMetade,
-          valorKg,
-          total,
-        ]);
+        data.push([grudeFrescaNome[i].value, kg, kgMetade, valorKg, total]);
 
         totalEntradas += total;
         totalQuantidade += kgMetade;
@@ -360,10 +362,11 @@ function exportToExcel() {
   }
 }
 
-function gerarPDF() {
+async function gerarPDF() {
   try {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
+    const logo = await loadImage("public/LogoPreta.png");
     const mesAtual = document.getElementById("currentMonth").textContent;
     const marginX = 10;
     const rowHeight = 9;
@@ -388,10 +391,11 @@ function gerarPDF() {
     ];
     doc.setLineWidth(0.2);
 
-    const fornecedorNome =
-      (document.getElementById("supplierName")?.value || "")
-        .trim()
-        .toUpperCase();
+    const fornecedorNome = (
+      document.getElementById("supplierName")?.value || ""
+    )
+      .trim()
+      .toUpperCase();
 
     const nomes = document.getElementsByName("alunoNome[]");
     const quantidades = document.getElementsByName("alunoQtd[]");
@@ -452,10 +456,17 @@ function gerarPDF() {
       (acc, item) => acc + item.total,
       0
     );
+    const totalQuantidadeSeca = grudes.reduce(
+      (acc, item) => acc + item.quantidade,
+      0
+    );
+    const totalKgFresca = grudesFresca.reduce((acc, item) => acc + item.kg, 0);
+    const totalQuantidadeFresca = grudesFresca.reduce(
+      (acc, item) => acc + item.kgMetade,
+      0
+    );
     const totalEntradas = totalEntradasPadrão + totalEntradasFresca;
-    const totalQuantidade =
-      grudes.reduce((acc, item) => acc + item.quantidade, 0) +
-      grudesFresca.reduce((acc, item) => acc + item.kgMetade, 0);
+    const totalQuantidade = totalQuantidadeSeca + totalQuantidadeFresca;
     const totalDespesas = despesas.reduce((acc, item) => acc + item.valor, 0);
     const saldo = totalEntradas - totalDespesas;
 
@@ -482,8 +493,7 @@ function gerarPDF() {
       let x = marginX;
       cells.forEach((cell, index) => {
         const cellWidth = widths[index];
-        const isBold =
-          boldFlags[index] !== undefined ? boldFlags[index] : true;
+        const isBold = boldFlags[index] !== undefined ? boldFlags[index] : true;
         doc.setFont("helvetica", isBold ? "bold" : "normal");
         doc.rect(x, startY, cellWidth, rowHeight);
         doc.text(
@@ -497,7 +507,7 @@ function gerarPDF() {
       return startY + rowHeight;
     };
 
-    const drawRows = (rows, startY, widths) => {
+    const drawRows = (rows, startY, widths, alignments = []) => {
       let y = startY;
       rows.forEach((row) => {
         const isSaldoOuTotal = row[0] === "SALDO" || row[0] === "TOTAL";
@@ -506,7 +516,8 @@ function gerarPDF() {
         row.forEach((cell, index) => {
           const cellWidth = widths[index];
           const text = cell == null ? "" : cell;
-          const align = index === 0 ? "left" : "right";
+          const align =
+            alignments[index] || (index === 0 ? "left" : "right");
           const textX =
             align === "right"
               ? x + cellWidth - 2
@@ -522,7 +533,46 @@ function gerarPDF() {
       return y;
     };
 
-    let currentY = 15;
+    // Cabeçalho visual centralizado com logo preta e texto sublinhado em preto
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+
+    const logoWidth = 30;
+    const logoHeight = 30;
+    const logoY = 10;
+    const headerText = "JML-Pescados";
+    const textWidth = doc.getTextWidth(headerText);
+    const separatorLength = 10; // traço mais curto
+    const separatorGap = 6;
+    const spacerAfterLogo = 3;
+
+    const headerGroupWidth =
+      logoWidth + spacerAfterLogo + separatorLength + separatorGap + textWidth;
+    const startX = marginX + (totalTableWidth - headerGroupWidth) / 2;
+
+    const logoX = startX;
+    doc.addImage(logo, "PNG", logoX, logoY, logoWidth, logoHeight);
+
+    const midY = logoY + logoHeight / 2;
+    const lineY = midY + 1; // leve ajuste para parecer centralizado
+    const lineX1 = logoX + logoWidth + spacerAfterLogo;
+    const lineX2 = lineX1 + separatorLength;
+    const previousLineWidth = doc.getLineWidth();
+    doc.setLineWidth(0.8);
+    doc.line(lineX1, lineY, lineX2, lineY);
+
+    const textX = lineX2 + separatorGap;
+    const textY = midY + 3; // levanta mais o texto para alinhar com a logo
+    doc.text(headerText, textX, textY);
+
+    const underlineWidth = textWidth; // sublinhado ajustado ao tamanho do texto
+    doc.line(textX, textY + 2, textX + underlineWidth, textY + 2);
+    doc.setLineWidth(previousLineWidth);
+    doc.setFontSize(12);
+
+    const headerBottom = Math.max(logoY + logoHeight, textY + 3);
+    let currentY = headerBottom + 6;
 
     currentY = drawMergedRow("BALANCETE", currentY);
     currentY = drawMergedRow(
@@ -552,7 +602,12 @@ function gerarPDF() {
       : [["-", "0,00", "0,00", "0,00"]];
     const grudeRowsWithTotal = [
       ...grudeRows,
-      ["TOTAL", "", "", formatNumber(totalEntradasPadrão)],
+      [
+        "TOTAL",
+        formatNumber(totalQuantidadeSeca),
+        "",
+        formatNumber(totalEntradasPadrão),
+      ],
     ];
 
     currentY = drawHeaderRow(
@@ -561,7 +616,12 @@ function gerarPDF() {
       colWidths,
       ["left", "center", "center", "center"]
     );
-    currentY = drawRows(grudeRowsWithTotal, currentY, colWidths);
+    currentY = drawRows(
+      grudeRowsWithTotal,
+      currentY,
+      colWidths,
+      ["left", "center", "center", "center"]
+    );
 
     currentY += rowHeight; // linha em branco
 
@@ -576,7 +636,13 @@ function gerarPDF() {
       : [["-", "0,00", "0,00", "0,00", "0,00"]];
     const grudeFrescaRowsWithTotal = [
       ...grudeFrescaRows,
-      ["TOTAL", "", "", "", formatNumber(totalEntradasFresca)],
+      [
+        "TOTAL",
+        formatNumber(totalKgFresca),
+        formatNumber(totalQuantidadeFresca),
+        "",
+        formatNumber(totalEntradasFresca),
+      ],
     ];
 
     currentY = drawMergedRow(
@@ -591,7 +657,12 @@ function gerarPDF() {
       colWidthsFresca,
       ["left", "center", "center", "center", "center"]
     );
-    currentY = drawRows(grudeFrescaRowsWithTotal, currentY, colWidthsFresca);
+    currentY = drawRows(
+      grudeFrescaRowsWithTotal,
+      currentY,
+      colWidthsFresca,
+      ["left", "center", "center", "center", "center"]
+    );
 
     currentY += rowHeight; // linha em branco
 
@@ -626,6 +697,30 @@ function gerarPDF() {
   } catch (erro) {
     console.error("Erro ao gerar PDF:", erro);
     alert("Erro ao gerar PDF!");
+  }
+}
+
+async function gerarJPG() {
+  try {
+    const mesAtual = document.getElementById("currentMonth").textContent;
+    const target = document.body;
+
+    const canvas = await html2canvas(target, {
+      scale: 2, // melhora a definição da imagem
+      useCORS: true,
+      logging: false,
+    });
+
+    const dataURL = canvas.toDataURL("image/jpeg", 0.95);
+    const link = document.createElement("a");
+    link.href = dataURL;
+    link.download = `balancete_${mesAtual.toLowerCase()}.jpg`;
+    link.click();
+
+    console.log("JPG gerado com sucesso");
+  } catch (erro) {
+    console.error("Erro ao gerar JPG:", erro);
+    alert("Erro ao gerar JPG!");
   }
 }
 
