@@ -588,6 +588,7 @@ async function criarDocumentoBalancete() {
   const logoHeight = 30;
   const logoY = 10;
   const headerText = "JML-Pescados";
+  const cnpjText = "CNPJ: 41.700.688/0001-08";
   const textWidth = doc.getTextWidth(headerText);
   const separatorLength = 10; // traço mais curto
   const separatorGap = 6;
@@ -614,10 +615,17 @@ async function criarDocumentoBalancete() {
 
   const underlineWidth = textWidth; // sublinhado ajustado ao tamanho do texto
   doc.line(textX, textY + 2, textX + underlineWidth, textY + 2);
+
+  // CNPJ abaixo do nome (negrito e centralizado em relação ao título)
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  const cnpjY = textY + 8;
+  doc.text(cnpjText, textX + underlineWidth / 2, cnpjY, { align: "center" });
+
   doc.setLineWidth(previousLineWidth);
   doc.setFontSize(12);
 
-  const headerBottom = Math.max(logoY + logoHeight, textY + 3);
+  const headerBottom = Math.max(logoY + logoHeight, cnpjY + 3);
   let currentY = headerBottom + 6;
 
   currentY = drawMergedRow("BALANCETE", currentY);
