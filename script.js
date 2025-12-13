@@ -28,11 +28,17 @@ function updateMonth() {
 }
 
 function excluirLinha(button) {
-  const row = button.parentNode.parentNode;
-  const table = row.parentNode;
+  const row = button.closest("tr");
+  const table = button.closest("table");
+  const tbody = table ? table.tBodies[0] : null;
+  const dataRowsCount = tbody
+    ? tbody.rows.length
+    : table
+    ? table.rows.length - (table.tHead ? table.tHead.rows.length : 0)
+    : 0;
 
-  // Não permite excluir se for a única linha da tabela
-  if (table.rows.length > 2) {
+  // Não permite excluir se for a última linha de dados
+  if (dataRowsCount > 1) {
     row.remove();
     calcularTotais(); // Atualiza os totais após excluir
   } else {
@@ -597,8 +603,10 @@ function salvarDados() {
     const mesAtual = document.getElementById("currentMonth").textContent;
     const anoAtual = new Date().getFullYear();
     const chave = `balancete_${mesAtual.toLowerCase()}_${anoAtual}`;
+    const fornecedorInput = document.getElementById("supplierName");
 
     const dados = {
+      fornecedor: fornecedorInput ? fornecedorInput.value : "",
       alunos: [],
       grudeFresca: [],
       despesas: [],
@@ -667,6 +675,7 @@ function carregarDados() {
     const mesAtual = document.getElementById("currentMonth").textContent;
     const anoAtual = new Date().getFullYear();
     const chave = `balancete_${mesAtual.toLowerCase()}_${anoAtual}`;
+    const fornecedorInput = document.getElementById("supplierName");
 
     const dadosSalvos = localStorage.getItem(chave);
     if (!dadosSalvos) {
@@ -713,9 +722,13 @@ function carregarDados() {
             <tr>
                 <th>Descrição da Despesa</th>
                 <th>Valor (R$)</th>
-                <th>Ação</th>
-            </tr>
+            <th>Ação</th>
+          </tr>
         `;
+
+    if (fornecedorInput) {
+      fornecedorInput.value = dados.fornecedor || fornecedorInput.value || "";
+    }
 
     // Carregar alunos
     dados.alunos.forEach((aluno) => {
