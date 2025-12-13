@@ -377,8 +377,15 @@ function gerarPDF() {
     const colWidths = [80, 35, 35, 40]; // tabela grude seca (soma 190)
     const colWidthsFresca = [60, 30, 30, 30, 40]; // tabela grude fresca (mais espaço no TOTAL)
     const twoColWidths = [totalTableWidth - 70, 70];
-    // Colunas para o bloco de fornecedor: rótulo curto e campo longo
-    const supplierColWidths = [28, totalTableWidth - 28];
+    const supplierLabel = "FORNECEDOR";
+    const supplierLabelWidth = Math.min(
+      Math.max(doc.getTextWidth(supplierLabel) + 4, 30),
+      45
+    ); // largura adaptável, mais justa ao texto
+    const supplierColWidths = [
+      supplierLabelWidth,
+      totalTableWidth - supplierLabelWidth,
+    ];
     doc.setLineWidth(0.2);
 
     const fornecedorNome =
@@ -465,11 +472,19 @@ function gerarPDF() {
       return startY + rowHeight;
     };
 
-    const drawHeaderRow = (cells, startY, widths, alignments = []) => {
+    const drawHeaderRow = (
+      cells,
+      startY,
+      widths,
+      alignments = [],
+      boldFlags = []
+    ) => {
       let x = marginX;
-      doc.setFont("helvetica", "bold");
       cells.forEach((cell, index) => {
         const cellWidth = widths[index];
+        const isBold =
+          boldFlags[index] !== undefined ? boldFlags[index] : true;
+        doc.setFont("helvetica", isBold ? "bold" : "normal");
         doc.rect(x, startY, cellWidth, rowHeight);
         doc.text(
           String(cell || ""),
@@ -511,18 +526,18 @@ function gerarPDF() {
 
     currentY = drawMergedRow("BALANCETE", currentY);
     currentY = drawMergedRow(
-      `JML-PESCADOS - BALANCETE - ${dataRelatorio}`,
+      `JML-PESCADOS - ${dataRelatorio}`,
       currentY,
       totalTableWidth,
       "left"
     );
 
-    currentY = drawMergedRow("FORNECEDOR", currentY, totalTableWidth, "left");
     currentY = drawHeaderRow(
-      ["NOME", fornecedorNome || "-"],
+      ["FORNECEDOR", fornecedorNome || "-"],
       currentY,
       supplierColWidths,
-      ["left", "left"]
+      ["left", "left"],
+      [true, false]
     );
 
     currentY += rowHeight; // linha em branco antes dos quadros
