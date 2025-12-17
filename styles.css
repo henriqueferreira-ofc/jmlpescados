@@ -116,6 +116,20 @@ td:last-child {
   min-width: 90px;
 }
 
+#tabelaAlunos th:nth-child(2),
+#tabelaAlunos th:nth-child(3),
+#tabelaAlunos th:last-child,
+#tabelaAlunos td:nth-child(2),
+#tabelaAlunos td:nth-child(3),
+#tabelaAlunos td:last-child {
+  text-align: center;
+}
+
+#tabelaAlunos td:nth-child(2) input,
+#tabelaAlunos td:nth-child(3) input {
+  text-align: center;
+}
+
 #tabelaGrudeFresca th:first-child,
 #tabelaGrudeFresca td:first-child {
   width: 30%;
@@ -139,6 +153,34 @@ td:last-child {
 #tabelaGrudeFresca th:last-child,
 #tabelaGrudeFresca td:last-child {
   width: 17%;
+}
+
+#tabelaGrudeFresca th:nth-child(2),
+#tabelaGrudeFresca th:nth-child(3),
+#tabelaGrudeFresca th:nth-child(4),
+#tabelaGrudeFresca th:last-child,
+#tabelaGrudeFresca td:nth-child(2),
+#tabelaGrudeFresca td:nth-child(3),
+#tabelaGrudeFresca td:nth-child(4),
+#tabelaGrudeFresca td:last-child {
+  text-align: center;
+}
+
+#tabelaGrudeFresca td:nth-child(2) input,
+#tabelaGrudeFresca td:nth-child(3) input,
+#tabelaGrudeFresca td:nth-child(4) input {
+  text-align: center;
+}
+
+#tabelaDespesas th:nth-child(2),
+#tabelaDespesas th:last-child,
+#tabelaDespesas td:nth-child(2),
+#tabelaDespesas td:last-child {
+  text-align: center;
+}
+
+#tabelaDespesas td:nth-child(2) input {
+  text-align: center;
 }
 
 th {
