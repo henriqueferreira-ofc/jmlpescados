@@ -390,22 +390,27 @@ async function gerarJPG() {
     }
 
     const pdf = await window.pdfjsLib.getDocument({ data: pdfData }).promise;
-    const page = await pdf.getPage(1);
-    const viewport = page.getViewport({ scale: 2 });
+    const totalPages = pdf.numPages;
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
 
-    await page.render({ canvasContext: context, viewport }).promise;
+    for (let pageNumber = 1; pageNumber <= totalPages; pageNumber++) {
+      const page = await pdf.getPage(pageNumber);
+      const viewport = page.getViewport({ scale: 2 });
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
 
-    const dataURL = canvas.toDataURL("image/jpeg", 0.95);
-    const link = document.createElement("a");
-    link.href = dataURL;
-    link.download = `balancete_${mesAtual.toLowerCase()}.jpg`;
-    link.click();
+      await page.render({ canvasContext: context, viewport }).promise;
 
-    console.log("JPG gerado com sucesso");
+      const dataURL = canvas.toDataURL("image/jpeg", 0.95);
+      const link = document.createElement("a");
+      const suffix = totalPages > 1 ? `_p${pageNumber}` : "";
+      link.href = dataURL;
+      link.download = `balancete_${mesAtual.toLowerCase()}${suffix}.jpg`;
+      link.click();
+    }
+
+    console.log("JPG(s) gerado(s) com sucesso");
   } catch (erro) {
     console.error("Erro ao gerar JPG:", erro);
     alert("Erro ao gerar JPG!");
@@ -419,6 +424,9 @@ async function criarDocumentoBalancete() {
   const mesAtual = document.getElementById("currentMonth").textContent;
   const marginX = 10;
   const rowHeight = 9;
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const topMargin = 10;
+  const bottomMargin = 15;
   const formatNumber = (value) =>
     Number(value || 0).toLocaleString("pt-BR", {
       minimumFractionDigits: 2,
@@ -439,6 +447,17 @@ async function criarDocumentoBalancete() {
     totalTableWidth - supplierLabelWidth,
   ];
   doc.setLineWidth(0.2);
+
+  const addPageIfNeeded = (y, heightNeeded, onPageBreak) => {
+    if (y + heightNeeded > pageHeight - bottomMargin) {
+      doc.addPage();
+      y = topMargin;
+      if (typeof onPageBreak === "function") {
+        y = onPageBreak(y);
+      }
+    }
+    return y;
+  };
 
   const fornecedorNome = (
     document.getElementById("supplierName")?.value || ""
@@ -522,11 +541,12 @@ async function criarDocumentoBalancete() {
     width = totalTableWidth,
     align = "center"
   ) => {
+    let y = addPageIfNeeded(startY, rowHeight);
     doc.setFont("helvetica", "bold");
-    doc.rect(marginX, startY, width, rowHeight);
+    doc.rect(marginX, y, width, rowHeight);
     const textX = align === "left" ? marginX + 2 : marginX + width / 2;
-    doc.text(String(text), textX, startY + rowHeight / 2 + 2, { align });
-    return startY + rowHeight;
+    doc.text(String(text), textX, y + rowHeight / 2 + 2, { align });
+    return y + rowHeight;
   };
 
   const drawHeaderRow = (
@@ -536,26 +556,34 @@ async function criarDocumentoBalancete() {
     alignments = [],
     boldFlags = []
   ) => {
+    let y = addPageIfNeeded(startY, rowHeight);
     let x = marginX;
     cells.forEach((cell, index) => {
       const cellWidth = widths[index];
       const isBold = boldFlags[index] !== undefined ? boldFlags[index] : true;
       doc.setFont("helvetica", isBold ? "bold" : "normal");
-      doc.rect(x, startY, cellWidth, rowHeight);
+      doc.rect(x, y, cellWidth, rowHeight);
       doc.text(
         String(cell || ""),
         alignments[index] === "left" ? x + 2 : x + cellWidth / 2,
-        startY + rowHeight / 2 + 2,
+        y + rowHeight / 2 + 2,
         { align: alignments[index] || "center" }
       );
       x += cellWidth;
     });
-    return startY + rowHeight;
+    return y + rowHeight;
   };
 
-  const drawRows = (rows, startY, widths, alignments = []) => {
+  const drawRows = (
+    rows,
+    startY,
+    widths,
+    alignments = [],
+    onPageBreak
+  ) => {
     let y = startY;
     rows.forEach((row) => {
+      y = addPageIfNeeded(y, rowHeight, onPageBreak);
       const isSaldoOuTotal = row[0] === "SALDO" || row[0] === "TOTAL";
       doc.setFont("helvetica", isSaldoOuTotal ? "bold" : "normal");
       let x = marginX;
@@ -577,6 +605,11 @@ async function criarDocumentoBalancete() {
       y += rowHeight;
     });
     return y;
+  };
+
+  const addSpacer = (y) => {
+    const newY = addPageIfNeeded(y, rowHeight);
+    return newY + rowHeight;
   };
 
   // Cabeçalho visual centralizado com logo preta e texto sublinhado em preto
@@ -644,7 +677,7 @@ async function criarDocumentoBalancete() {
     [true, false]
   );
 
-  currentY += rowHeight; // linha em branco antes dos quadros
+  currentY = addSpacer(currentY); // linha em branco antes dos quadros
 
   const grudeRows = grudes.length
     ? grudes.map((item) => [
@@ -664,20 +697,23 @@ async function criarDocumentoBalancete() {
     ],
   ];
 
-  currentY = drawHeaderRow(
-    ["GRUDE SECA", "QTD (KG)", "VALOR/KG", "TOTAL"],
-    currentY,
-    colWidths,
-    ["left", "center", "center", "center"]
-  );
+  const renderGrudeSecaHeader = (y) =>
+    drawHeaderRow(
+      ["GRUDE SECA", "QTD (KG)", "VALOR/KG", "TOTAL"],
+      y,
+      colWidths,
+      ["left", "center", "center", "center"]
+    );
+  currentY = renderGrudeSecaHeader(currentY);
   currentY = drawRows(
     grudeRowsWithTotal,
     currentY,
     colWidths,
-    ["left", "center", "center", "center"]
+    ["left", "center", "center", "center"],
+    renderGrudeSecaHeader
   );
 
-  currentY += rowHeight; // linha em branco
+  currentY = addSpacer(currentY); // linha em branco
 
   const grudeFrescaRows = grudesFresca.length
     ? grudesFresca.map((item) => [
@@ -705,34 +741,45 @@ async function criarDocumentoBalancete() {
     colWidthsFresca.reduce((acc, w) => acc + w, 0),
     "left"
   );
-  currentY = drawHeaderRow(
-    ["GRUDES", "KG", "KG 1/2", "VALOR/KG", "TOTAL"],
-    currentY,
-    colWidthsFresca,
-    ["left", "center", "center", "center", "center"]
-  );
+  const renderGrudeFrescaHeader = (y) =>
+    drawHeaderRow(
+      ["GRUDES", "KG", "KG 1/2", "VALOR/KG", "TOTAL"],
+      y,
+      colWidthsFresca,
+      ["left", "center", "center", "center", "center"]
+    );
+  currentY = renderGrudeFrescaHeader(currentY);
   currentY = drawRows(
     grudeFrescaRowsWithTotal,
     currentY,
     colWidthsFresca,
-    ["left", "center", "center", "center", "center"]
+    ["left", "center", "center", "center", "center"],
+    renderGrudeFrescaHeader
   );
 
-  currentY += rowHeight; // linha em branco
+  currentY = addSpacer(currentY); // linha em branco
 
   currentY = drawMergedRow("DESPESAS", currentY, totalTableWidth, "left");
-  currentY = drawHeaderRow(["Descrição", "VALOR"], currentY, twoColWidths, [
-    "left",
-    "center",
-  ]);
+  const renderDespesasHeader = (y) =>
+    drawHeaderRow(["Descrição", "VALOR"], y, twoColWidths, [
+      "left",
+      "center",
+    ]);
+  currentY = renderDespesasHeader(currentY);
 
   const despRows = despesas.length
     ? despesas.map((item) => [item.descricao, formatNumber(item.valor)])
     : [["-", "0,00"]];
 
-  currentY = drawRows(despRows, currentY, twoColWidths);
+  currentY = drawRows(
+    despRows,
+    currentY,
+    twoColWidths,
+    [],
+    renderDespesasHeader
+  );
 
-  currentY += rowHeight; // linha em branco
+  currentY = addSpacer(currentY); // linha em branco
 
   currentY = drawMergedRow("RESUMO", currentY, totalTableWidth, "left");
 
