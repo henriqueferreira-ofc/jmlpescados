@@ -23,7 +23,7 @@ body {
 .header__cnpj {
   margin-top: 6px;
   font-weight: 600;
-  color: #34495e;
+  color: rgb(66, 44, 160);
 }
 
 .supplier-card {
