@@ -15,6 +15,17 @@ body {
   text-align: center;
 }
 
+.header__text {
+  text-align: center;
+  margin-top: 16px;
+}
+
+.header__cnpj {
+  margin-top: 6px;
+  font-weight: 600;
+  color: #34495e;
+}
+
 .supplier-card {
   background-color: rgb(66, 44, 160);
   color: white;
