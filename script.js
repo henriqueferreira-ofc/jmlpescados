@@ -72,38 +72,6 @@ function adicionarAluno() {
   }
 }
 
-function adicionarGrudeFresca() {
-  try {
-    const tabela = document
-      .getElementById("tabelaGrudeFresca")
-      .querySelector("tbody");
-    const novaLinha = tabela.insertRow();
-
-    novaLinha.innerHTML = `
-            <td><input type="text" name="grudeFrescaNome[]" onchange="this.value = this.value.toUpperCase()" /></td>
-            <td><input type="number" name="grudeFrescaKg[]" step="0.01" min="0" oninput="atualizarMetade(this)" /></td>
-            <td><input type="number" name="grudeFrescaKgMetade[]" step="0.01" min="0" readonly /></td>
-            <td><input type="number" name="grudeFrescaValor[]" step="0.01" min="0" oninput="calcularTotais()" /></td>
-            <td><button onclick="excluirLinha(this)" class="btn-excluir">Excluir</button></td>
-        `;
-
-    calcularTotais();
-    console.log("Novo grude fresca adicionado");
-  } catch (error) {
-    console.error("Erro ao adicionar grude fresca:", error);
-  }
-}
-
-function atualizarMetade(inputKg) {
-  const row = inputKg.closest("tr");
-  const metadeInput = row.querySelector('input[name="grudeFrescaKgMetade[]"]');
-  if (!metadeInput) return;
-
-  const kg = parseFloat(inputKg.value) || 0;
-  metadeInput.value = kg ? (kg / 2).toFixed(2) : "";
-  calcularTotais();
-}
-
 function adicionarDespesa() {
   try {
     const tabela = document.getElementById("tabelaDespesas");
@@ -138,29 +106,6 @@ function calcularTotais() {
         const valorPorKg = parseFloat(valores[i].value);
         totalEntradas += quantidade * valorPorKg;
         totalQuantidade += quantidade;
-      }
-    }
-
-    // Calcula entradas de grude fresca usando metade do KG
-    const grudeFrescaKg = document.getElementsByName("grudeFrescaKg[]");
-    const grudeFrescaMetade = document.getElementsByName(
-      "grudeFrescaKgMetade[]"
-    );
-    const grudeFrescaValor = document.getElementsByName("grudeFrescaValor[]");
-
-    for (let i = 0; i < grudeFrescaKg.length; i++) {
-      const kg = parseFloat(grudeFrescaKg[i].value || 0);
-      const valorKg = parseFloat(grudeFrescaValor[i].value || 0);
-      const metade = kg / 2;
-
-      if (grudeFrescaMetade[i]) {
-        grudeFrescaMetade[i].value =
-          grudeFrescaKg[i].value === "" ? "" : metade.toFixed(2);
-      }
-
-      if (grudeFrescaKg[i].value || grudeFrescaValor[i].value) {
-        totalEntradas += metade * valorKg;
-        totalQuantidade += metade;
       }
     }
 
@@ -203,9 +148,6 @@ function calcularTotais() {
       totalDespesas,
       totalReceita,
       totalQuantidade,
-      grudeFresca: {
-        linhas: grudeFrescaKg.length,
-      },
     });
   } catch (error) {
     console.error("Erro ao calcular totais:", error);
@@ -231,9 +173,6 @@ function exportToExcel() {
     const nomes = document.getElementsByName("alunoNome[]");
     const quantidades = document.getElementsByName("alunoQtd[]");
     const valores = document.getElementsByName("alunoValor[]");
-    const grudeFrescaNome = document.getElementsByName("grudeFrescaNome[]");
-    const grudeFrescaKg = document.getElementsByName("grudeFrescaKg[]");
-    const grudeFrescaValor = document.getElementsByName("grudeFrescaValor[]");
     const descricoes = document.getElementsByName("despesaDescricao[]");
     const valoresDespesa = document.getElementsByName("despesaValor[]");
 
@@ -271,34 +210,6 @@ function exportToExcel() {
         totalQuantidade += quantidade;
       }
     }
-
-    // Linha em branco
-    data.push([null, null, null, null, null]);
-
-    // Grude fresca
-    data.push(["GRUDE FRESCA", null, null, null, null]);
-    data.push(["GRUDES", "KG", "KG 1/2", "VALOR/KG", "TOTAL"]);
-
-    for (let i = 0; i < grudeFrescaNome.length; i++) {
-      if (
-        grudeFrescaNome[i].value ||
-        grudeFrescaKg[i].value ||
-        grudeFrescaValor[i].value
-      ) {
-        const kg = parseFloat(grudeFrescaKg[i].value || 0);
-        const kgMetade = kg / 2;
-        const valorKg = parseFloat(grudeFrescaValor[i].value || 0);
-        const total = kgMetade * valorKg;
-
-        data.push([grudeFrescaNome[i].value, kg, kgMetade, valorKg, total]);
-
-        totalEntradas += total;
-        totalQuantidade += kgMetade;
-      }
-    }
-
-    // Linha em branco
-    data.push([null, null, null, null, null]);
 
     // Cabeçalho das despesas
     data.push(["DESPESAS", null, null, null, null]);
@@ -435,7 +346,6 @@ async function criarDocumentoBalancete() {
   const dataRelatorio = new Date().toLocaleDateString("pt-BR"); // dd/mm/aaaa
   const totalTableWidth = 190; // largura fixa para alinhar todos os quadros
   const colWidths = [80, 35, 35, 40]; // tabela grude seca (soma 190)
-  const colWidthsFresca = [60, 30, 30, 30, 40]; // tabela grude fresca (mais espaço no TOTAL)
   const twoColWidths = [totalTableWidth - 70, 70];
   const supplierLabel = "FORNECEDOR";
   const supplierLabelWidth = Math.min(
@@ -468,9 +378,6 @@ async function criarDocumentoBalancete() {
   const nomes = document.getElementsByName("alunoNome[]");
   const quantidades = document.getElementsByName("alunoQtd[]");
   const valores = document.getElementsByName("alunoValor[]");
-  const grudeFrescaNome = document.getElementsByName("grudeFrescaNome[]");
-  const grudeFrescaKg = document.getElementsByName("grudeFrescaKg[]");
-  const grudeFrescaValor = document.getElementsByName("grudeFrescaValor[]");
   const descricoes = document.getElementsByName("despesaDescricao[]");
   const valoresDespesa = document.getElementsByName("despesaValor[]");
 
@@ -488,26 +395,6 @@ async function criarDocumentoBalancete() {
     }
   }
 
-  const grudesFresca = [];
-  for (let i = 0; i < grudeFrescaNome.length; i++) {
-    if (
-      grudeFrescaNome[i].value ||
-      grudeFrescaKg[i].value ||
-      grudeFrescaValor[i].value
-    ) {
-      const kg = parseFloat(grudeFrescaKg[i].value || 0);
-      const kgMetade = kg / 2;
-      const valorPorKg = parseFloat(grudeFrescaValor[i].value || 0);
-      grudesFresca.push({
-        nome: grudeFrescaNome[i].value,
-        kg,
-        kgMetade,
-        valor: valorPorKg,
-        total: kgMetade * valorPorKg,
-      });
-    }
-  }
-
   const despesas = [];
   for (let i = 0; i < descricoes.length; i++) {
     if (descricoes[i].value) {
@@ -517,21 +404,12 @@ async function criarDocumentoBalancete() {
   }
 
   const totalEntradasPadrão = grudes.reduce((acc, item) => acc + item.total, 0);
-  const totalEntradasFresca = grudesFresca.reduce(
-    (acc, item) => acc + item.total,
-    0
-  );
   const totalQuantidadeSeca = grudes.reduce(
     (acc, item) => acc + item.quantidade,
     0
   );
-  const totalKgFresca = grudesFresca.reduce((acc, item) => acc + item.kg, 0);
-  const totalQuantidadeFresca = grudesFresca.reduce(
-    (acc, item) => acc + item.kgMetade,
-    0
-  );
-  const totalEntradas = totalEntradasPadrão + totalEntradasFresca;
-  const totalQuantidade = totalQuantidadeSeca + totalQuantidadeFresca;
+  const totalEntradas = totalEntradasPadrão;
+  const totalQuantidade = totalQuantidadeSeca;
   const totalDespesas = despesas.reduce((acc, item) => acc + item.valor, 0);
   const saldo = totalEntradas - totalDespesas;
 
@@ -715,50 +593,6 @@ async function criarDocumentoBalancete() {
 
   currentY = addSpacer(currentY); // linha em branco
 
-  const grudeFrescaRows = grudesFresca.length
-    ? grudesFresca.map((item) => [
-        item.nome,
-        formatNumber(item.kg),
-        formatNumber(item.kgMetade),
-        formatNumber(item.valor),
-        formatNumber(item.total),
-      ])
-    : [["-", "0,00", "0,00", "0,00", "0,00"]];
-  const grudeFrescaRowsWithTotal = [
-    ...grudeFrescaRows,
-    [
-      "TOTAL",
-      formatNumber(totalKgFresca),
-      formatNumber(totalQuantidadeFresca),
-      "",
-      formatNumber(totalEntradasFresca),
-    ],
-  ];
-
-  currentY = drawMergedRow(
-    "GRUDE FRESCA",
-    currentY,
-    colWidthsFresca.reduce((acc, w) => acc + w, 0),
-    "left"
-  );
-  const renderGrudeFrescaHeader = (y) =>
-    drawHeaderRow(
-      ["GRUDES", "KG", "KG 1/2", "VALOR/KG", "TOTAL"],
-      y,
-      colWidthsFresca,
-      ["left", "center", "center", "center", "center"]
-    );
-  currentY = renderGrudeFrescaHeader(currentY);
-  currentY = drawRows(
-    grudeFrescaRowsWithTotal,
-    currentY,
-    colWidthsFresca,
-    ["left", "center", "center", "center", "center"],
-    renderGrudeFrescaHeader
-  );
-
-  currentY = addSpacer(currentY); // linha em branco
-
   currentY = drawMergedRow("DESPESAS", currentY, totalTableWidth, "left");
   const renderDespesasHeader = (y) =>
     drawHeaderRow(["Descrição", "VALOR"], y, twoColWidths, [
@@ -806,7 +640,6 @@ function salvarDados() {
     const dados = {
       fornecedor: fornecedorInput ? fornecedorInput.value : "",
       alunos: [],
-      grudeFresca: [],
       despesas: [],
     };
 
@@ -820,29 +653,6 @@ function salvarDados() {
           nome: nomes[i].value,
           qtd: quantidades[i].value,
           valor: valores[i].value,
-        });
-      }
-    }
-
-    // Salvar dados de grude fresca
-    const grudeFrescaNome = document.getElementsByName("grudeFrescaNome[]");
-    const grudeFrescaKg = document.getElementsByName("grudeFrescaKg[]");
-    const grudeFrescaKgMetade = document.getElementsByName(
-      "grudeFrescaKgMetade[]"
-    );
-    const grudeFrescaValor = document.getElementsByName("grudeFrescaValor[]");
-
-    for (let i = 0; i < grudeFrescaNome.length; i++) {
-      if (
-        grudeFrescaNome[i].value ||
-        grudeFrescaKg[i].value ||
-        grudeFrescaValor[i].value
-      ) {
-        dados.grudeFresca.push({
-          nome: grudeFrescaNome[i].value,
-          kg: grudeFrescaKg[i].value,
-          kgMetade: grudeFrescaKgMetade[i].value,
-          valor: grudeFrescaValor[i].value,
         });
       }
     }
@@ -885,7 +695,6 @@ function carregarDados() {
 
     // Limpar tabelas existentes
     const tabelaAlunos = document.getElementById("tabelaAlunos");
-    const tabelaGrudeFresca = document.getElementById("tabelaGrudeFresca");
     const tabelaDespesas = document.getElementById("tabelaDespesas");
 
     // Manter apenas o cabeçalho das tabelas
@@ -894,20 +703,6 @@ function carregarDados() {
               <tr>
                 <th>GRUDE SECA</th>
                 <th>QTD KG</th>
-                <th>VALOR/KG</th>
-                <th>Ação</th>
-              </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        `;
-
-    tabelaGrudeFresca.innerHTML = `
-            <thead>
-              <tr>
-                <th>GRUDES</th>
-                <th>KG</th>
-                <th>KG 1/2</th>
                 <th>VALOR/KG</th>
                 <th>Ação</th>
               </tr>
@@ -944,32 +739,6 @@ function carregarDados() {
                 <td><button onclick="excluirLinha(this)" class="btn-excluir">Excluir</button></td>
             `;
     });
-
-    // Carregar grude fresca
-    const grudesFrescaSalvos = dados.grudeFresca || [];
-    grudesFrescaSalvos.forEach((grude) => {
-      const novaLinha = tabelaGrudeFresca.querySelector("tbody").insertRow();
-      novaLinha.innerHTML = `
-                <td><input type="text" name="grudeFrescaNome[]" value="${
-                  grude.nome || ""
-                }" onchange="this.value = this.value.toUpperCase()" /></td>
-                <td><input type="number" name="grudeFrescaKg[]" value="${
-                  grude.kg || ""
-                }" step="0.01" min="0" oninput="atualizarMetade(this)" /></td>
-                <td><input type="number" name="grudeFrescaKgMetade[]" value="${
-                  grude.kgMetade || ""
-                }" step="0.01" min="0" readonly /></td>
-                <td><input type="number" name="grudeFrescaValor[]" value="${
-                  grude.valor || ""
-                }" step="0.01" min="0" oninput="calcularTotais()" /></td>
-                <td><button onclick="excluirLinha(this)" class="btn-excluir">Excluir</button></td>
-            `;
-    });
-
-    // Garante uma linha vazia para novos lançamentos se não existir grude fresca salvo
-    if (!grudesFrescaSalvos.length) {
-      adicionarGrudeFresca();
-    }
 
     // Carregar despesas
     dados.despesas.forEach((despesa) => {

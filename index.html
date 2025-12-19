@@ -54,34 +54,6 @@
 
   <br><br>
 
-  <h3>CADASTRO DE GRUDE FRESCA</h3>
-  <div class="table-wrapper">
-    <table id="tabelaGrudeFresca">
-      <thead>
-        <tr>
-          <th>GRUDE VERDE</th>
-          <th>KG</th>
-          <th>KG 1/2</th>
-          <th>VALOR/KG</th>
-          <th>Ação</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><input type="text" name="grudeFrescaNome[]" onchange="this.value = this.value.toUpperCase()" /></td>
-          <td><input type="number" name="grudeFrescaKg[]" step="0.01" min="0" oninput="atualizarMetade(this)" /></td>
-          <td><input type="number" name="grudeFrescaKgMetade[]" step="0.01" min="0" readonly /></td>
-          <td><input type="number" name="grudeFrescaValor[]" step="0.01" min="0" oninput="calcularTotais()" /></td>
-          <td><button onclick="excluirLinha(this)" class="btn-excluir">Excluir</button></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <button onclick="adicionarGrudeFresca()">+ Adicionar Grude Fresca</button>
-
-  <br><br>
-
   <h3>DESPESAS GERAIS</h3>
   <div class="table-wrapper">
     <table id="tabelaDespesas">
