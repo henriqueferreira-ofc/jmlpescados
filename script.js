@@ -336,7 +336,7 @@ async function criarDocumentoBalancete() {
   const marginX = 10;
   const rowHeight = 9;
   const pageHeight = doc.internal.pageSize.getHeight();
-  const topMargin = 10;
+  const topMargin = 2;
   const bottomMargin = 15;
   const formatNumber = (value) =>
     Number(value || 0).toLocaleString("pt-BR", {
@@ -497,7 +497,7 @@ async function criarDocumentoBalancete() {
 
   const logoWidth = 30;
   const logoHeight = 30;
-  const logoY = 10;
+  const logoY = 0;
   const headerText = "JML-Pescados";
   const cnpjText = "CNPJ: 41.700.688/0001-08";
   const textWidth = doc.getTextWidth(headerText);
@@ -537,7 +537,7 @@ async function criarDocumentoBalancete() {
   doc.setFontSize(12);
 
   const headerBottom = Math.max(logoY + logoHeight, cnpjY + 3);
-  let currentY = headerBottom + 6;
+  let currentY = headerBottom + 2;
 
   currentY = drawMergedRow("BALANCETE", currentY);
   currentY = drawMergedRow(
@@ -618,8 +618,8 @@ async function criarDocumentoBalancete() {
   currentY = drawMergedRow("RESUMO", currentY, totalTableWidth, "left");
 
   const resumoRows = [
-    ["Entradas", formatNumber(totalEntradas)],
     ["QTD Total (KG)", formatNumber(totalQuantidade)],
+    ["Entradas", formatNumber(totalEntradas)],
     ["Despesas", formatNumber(totalDespesas)],
     ["SALDO", formatNumber(saldo)],
   ];
