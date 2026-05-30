@@ -3,8 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f4f3f" />
+  <meta name="apple-mobile-web-app-title" content="JML-Pescados" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <title>JML-Pescados</title>
-  <link rel="icon" type="image/png" href="public/LogoCelso.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="public/favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="public/apple-touch-icon.png">
+  <link rel="manifest" href="public/site.webmanifest">
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -41,10 +48,10 @@
       </thead>
       <tbody>
         <tr>
-          <td><input type="text" name="alunoNome[]" onchange="this.value = this.value.toUpperCase()" /></td>
-          <td><input type="number" name="alunoQtd[]" step="0.01" min="0" oninput="calcularTotais()" /></td>
-          <td><input type="number" name="alunoValor[]" step="0.01" min="0" oninput="calcularTotais()" /></td>
-          <td><button onclick="excluirLinha(this)" class="btn-excluir">Excluir</button></td>
+          <td data-label="Grude seca"><input type="text" name="alunoNome[]" onchange="this.value = this.value.toUpperCase()" /></td>
+          <td data-label="Qtd kg"><input type="number" name="alunoQtd[]" step="0.01" min="0" oninput="calcularTotais()" /></td>
+          <td data-label="Valor/kg"><input type="number" name="alunoValor[]" step="0.01" min="0" oninput="calcularTotais()" /></td>
+          <td data-label="Ação"><button onclick="excluirLinha(this)" class="btn-excluir">Excluir</button></td>
         </tr>
       </tbody>
     </table>
@@ -57,16 +64,20 @@
   <h3>DESPESAS GERAIS</h3>
   <div class="table-wrapper">
     <table id="tabelaDespesas">
-      <tr>
-        <th>Descrição da Despesa</th>
-        <th>Valor (R$)</th>
-        <th>Ação</th>
-      </tr>
-      <tr>
-        <td><input type="text" name="despesaDescricao[]" onchange="this.value = this.value.toUpperCase()" /></td>
-        <td><input type="number" name="despesaValor[]" oninput="calcularTotais()" /></td>
-        <td><button onclick="excluirLinha(this)" class="btn-excluir">Excluir</button></td>
-      </tr>
+      <thead>
+        <tr>
+          <th>Descrição da Despesa</th>
+          <th>Valor (R$)</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td data-label="Descrição"><input type="text" name="despesaDescricao[]" onchange="this.value = this.value.toUpperCase()" /></td>
+          <td data-label="Valor (R$)"><input type="number" name="despesaValor[]" oninput="calcularTotais()" /></td>
+          <td data-label="Ação"><button onclick="excluirLinha(this)" class="btn-excluir">Excluir</button></td>
+        </tr>
+      </tbody>
     </table>
   </div>
 
