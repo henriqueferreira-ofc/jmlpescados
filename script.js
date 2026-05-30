@@ -59,10 +59,10 @@ function adicionarAluno() {
     const novaLinha = tabela.insertRow();
 
     novaLinha.innerHTML = `
-            <td><input type="text" name="alunoNome[]" onchange="this.value = this.value.toUpperCase()" /></td>
-            <td><input type="number" name="alunoQtd[]" step="0.01" min="0" oninput="calcularTotais()" /></td>
-            <td><input type="number" name="alunoValor[]" step="0.01" min="0" oninput="calcularTotais()" /></td>
-            <td><button onclick="excluirLinha(this)" class="btn-excluir">Excluir</button></td>
+            <td data-label="Grude seca"><input type="text" name="alunoNome[]" onchange="this.value = this.value.toUpperCase()" /></td>
+            <td data-label="Qtd kg"><input type="number" name="alunoQtd[]" step="0.01" min="0" oninput="calcularTotais()" /></td>
+            <td data-label="Valor/kg"><input type="number" name="alunoValor[]" step="0.01" min="0" oninput="calcularTotais()" /></td>
+            <td data-label="Ação"><button onclick="excluirLinha(this)" class="btn-excluir">Excluir</button></td>
         `;
 
     calcularTotais();
@@ -78,9 +78,9 @@ function adicionarDespesa() {
     const novaLinha = tabela.insertRow();
 
     novaLinha.innerHTML = `
-            <td><input type="text" name="despesaDescricao[]" onchange="this.value = this.value.toUpperCase()" /></td>
-            <td><input type="number" name="despesaValor[]" step="0.01" min="0" oninput="calcularTotais()" /></td>
-            <td><button onclick="excluirLinha(this)" class="btn-excluir">Excluir</button></td>
+            <td data-label="Descrição"><input type="text" name="despesaDescricao[]" onchange="this.value = this.value.toUpperCase()" /></td>
+            <td data-label="Valor (R$)"><input type="number" name="despesaValor[]" step="0.01" min="0" oninput="calcularTotais()" /></td>
+            <td data-label="Ação"><button onclick="excluirLinha(this)" class="btn-excluir">Excluir</button></td>
         `;
 
     calcularTotais();
@@ -712,11 +712,15 @@ function carregarDados() {
         `;
 
     tabelaDespesas.innerHTML = `
+            <thead>
             <tr>
                 <th>Descrição da Despesa</th>
                 <th>Valor (R$)</th>
-            <th>Ação</th>
-          </tr>
+                <th>Ação</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
         `;
 
     if (fornecedorInput) {
@@ -727,26 +731,26 @@ function carregarDados() {
     dados.alunos.forEach((aluno) => {
       const novaLinha = tabelaAlunos.querySelector("tbody").insertRow();
       novaLinha.innerHTML = `
-                <td><input type="text" name="alunoNome[]" value="${
+                <td data-label="Grude seca"><input type="text" name="alunoNome[]" value="${
                   aluno.nome
                 }" onchange="this.value = this.value.toUpperCase()" /></td>
-                <td><input type="number" name="alunoQtd[]" value="${
+                <td data-label="Qtd kg"><input type="number" name="alunoQtd[]" value="${
                   aluno.qtd || ""
                 }" step="0.01" min="0" oninput="calcularTotais()" /></td>
-                <td><input type="number" name="alunoValor[]" value="${
+                <td data-label="Valor/kg"><input type="number" name="alunoValor[]" value="${
                   aluno.valor
                 }" step="0.01" min="0" oninput="calcularTotais()" /></td>
-                <td><button onclick="excluirLinha(this)" class="btn-excluir">Excluir</button></td>
+                <td data-label="Ação"><button onclick="excluirLinha(this)" class="btn-excluir">Excluir</button></td>
             `;
     });
 
     // Carregar despesas
     dados.despesas.forEach((despesa) => {
-      const novaLinha = tabelaDespesas.insertRow();
+      const novaLinha = tabelaDespesas.querySelector("tbody").insertRow();
       novaLinha.innerHTML = `
-                <td><input type="text" name="despesaDescricao[]" value="${despesa.descricao}" onchange="this.value = this.value.toUpperCase()" /></td>
-                <td><input type="number" name="despesaValor[]" value="${despesa.valor}" step="0.01" min="0" oninput="calcularTotais()" /></td>
-                <td><button onclick="excluirLinha(this)" class="btn-excluir">Excluir</button></td>
+                <td data-label="Descrição"><input type="text" name="despesaDescricao[]" value="${despesa.descricao}" onchange="this.value = this.value.toUpperCase()" /></td>
+                <td data-label="Valor (R$)"><input type="number" name="despesaValor[]" value="${despesa.valor}" step="0.01" min="0" oninput="calcularTotais()" /></td>
+                <td data-label="Ação"><button onclick="excluirLinha(this)" class="btn-excluir">Excluir</button></td>
             `;
     });
 
