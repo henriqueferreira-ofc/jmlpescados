@@ -424,9 +424,65 @@ button:hover {
     font-size: 16px;
   }
 
+  table {
+    min-width: auto;
+  }
+
+  table th,
+  table td {
+    padding: 6px 4px;
+    font-size: 12px;
+  }
+
+  /* Ajustar larguras específicas das colunas no mobile para caber perfeitamente */
+  #tabelaAlunos th:first-child,
+  #tabelaAlunos td:first-child {
+    width: 38%;
+  }
+  #tabelaAlunos th:nth-child(2),
+  #tabelaAlunos td:nth-child(2) {
+    width: 22%;
+  }
+  #tabelaAlunos th:nth-child(3),
+  #tabelaAlunos td:nth-child(3) {
+    width: 23%;
+  }
+  #tabelaAlunos th:last-child,
+  #tabelaAlunos td:last-child {
+    width: 17%;
+  }
+
+  #tabelaDespesas th:first-child,
+  #tabelaDespesas td:first-child {
+    width: 55%;
+  }
+  #tabelaDespesas th:nth-child(2),
+  #tabelaDespesas td:nth-child(2) {
+    width: 28%;
+  }
+  #tabelaDespesas th:last-child,
+  #tabelaDespesas td:last-child {
+    width: 17%;
+  }
+
   input {
-    padding: 10px;
-    min-height: 44px;
+    padding: 4px 6px;
+    min-height: 34px;
+    font-size: 13px;
+  }
+
+  .btn-excluir {
+    min-width: auto;
+    width: 100%;
+    padding: 6px 2px;
+    font-size: 11px;
+    min-height: 34px;
+  }
+
+  button {
+    padding: 8px 12px;
+    min-height: 38px;
+    font-size: 14px;
   }
 
   .totais,
