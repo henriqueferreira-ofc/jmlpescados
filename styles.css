@@ -63,10 +63,9 @@ body {
 }
 
 .logo {
-  height: 70px;
-  max-width: min(260px, 70vw);
-  width: auto;
-  object-fit: contain;
+  height: 110px;
+  width: 160px;
+  object-fit: fill;
   margin-top: -15px;
 }
 
